@@ -1,5 +1,8 @@
 package com.buzz.model;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -26,9 +29,11 @@ public class User {
     private Status status = ACTIVE;
 
     @Column
+    @CreationTimestamp
     private Instant created;
 
     @Column
+    @UpdateTimestamp
     private Instant lastModified;
 
     public enum Status {

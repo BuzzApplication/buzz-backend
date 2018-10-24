@@ -1,27 +1,31 @@
 package com.buzz.model;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import java.io.Serializable;
 import java.time.Instant;
 
 /**
  * Created by toshikijahja on 10/31/17.
  */
 @Entity
-@IdClass(UserEmail.UserEmailPK.class)
 public class UserEmail {
 
     @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private int id;
+
     @Column(nullable = false)
     private String email;
 
-    @Id
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "userId")
     private User user;
@@ -31,9 +35,11 @@ public class UserEmail {
     private Company company;
 
     @Column
+    @CreationTimestamp
     private Instant created;
 
     @Column
+    @UpdateTimestamp
     private Instant lastModified;
 
     public UserEmail() {
@@ -44,6 +50,14 @@ public class UserEmail {
         setEmail(builder.email);
         setUser(builder.user);
         setCompany(builder.company);
+    }
+
+    public int getId() {
+        return this.id;
+    }
+
+    public void setId(final int id) {
+        this.id = id;
     }
 
     public String getEmail() {
@@ -84,20 +98,6 @@ public class UserEmail {
 
     public void setLastModified(final Instant lastModified) {
         this.lastModified = lastModified;
-    }
-
-    public static class UserEmailPK implements Serializable {
-        private String email;
-        private User user;
-
-        public UserEmailPK() {
-
-        }
-
-        public UserEmailPK(final String email, final User user) {
-            this.email = email;
-            this.user = user;
-        }
     }
 
     public static class Builder {

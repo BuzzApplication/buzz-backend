@@ -6,15 +6,16 @@ import org.hibernate.query.Query;
 import java.util.List;
 import java.util.Optional;
 
-import static com.buzz.Constants.DATA;
-
 /**
  * Created by toshikijahja on 7/29/17.
  */
 public class BaseDao<T> {
 
+    private static final String DATA = "data";
+    private static final String SORT_FIELD = "sortField";
+
     private final SessionProvider sessionProvider;
-    private final Class clazz;
+    protected final Class clazz;
 
     protected BaseDao(final SessionProvider sessionProvider,
                    final Class clazz) {
@@ -26,9 +27,19 @@ public class BaseDao<T> {
         return this.sessionProvider;
     }
 
+    public enum Sort {
+        ASC, DESC
+    }
+
     @SuppressWarnings("unchecked")
     public T getById(final int id) {
-        return (T) getSessionProvider().getSession().get(clazz, id);
+        return (T) getSessionProvider().getSession().load(clazz, id);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Optional<T> getByIdOptional(final int id) {
+        final T result = (T) getSessionProvider().getSession().get(clazz, id);
+        return result == null ? Optional.empty() : Optional.of(result);
     }
 
     @SuppressWarnings("unchecked")
@@ -56,6 +67,33 @@ public class BaseDao<T> {
     protected List<T> getByField(final String field, final Boolean data) {
         final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA);
         query.setParameter(DATA, data);
+        return query.list();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<T> getByFieldSorted(final String field, final String data, final String sortField, final Sort sort) {
+        final Query query = getSessionProvider().getSession().createQuery(
+                "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
+        query.setParameter(DATA, data);
+        query.setParameter(SORT_FIELD, sortField);
+        return query.list();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<T> getByFieldSorted(final String field, final Integer data, final String sortField, final Sort sort) {
+        final Query query = getSessionProvider().getSession().createQuery(
+                "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
+        query.setParameter(DATA, data);
+        query.setParameter(SORT_FIELD, sortField);
+        return query.list();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<T> getByFieldSorted(final String field, final Boolean data, final String sortField, final Sort sort) {
+        final Query query = getSessionProvider().getSession().createQuery(
+                "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
+        query.setParameter(DATA, data);
+        query.setParameter(SORT_FIELD, sortField);
         return query.list();
     }
 
