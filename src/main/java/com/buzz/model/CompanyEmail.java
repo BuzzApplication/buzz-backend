@@ -1,5 +1,8 @@
 package com.buzz.model;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -23,9 +26,11 @@ public class CompanyEmail {
     private int companyId;
 
     @Column
+    @CreationTimestamp
     private Instant created;
 
     @Column
+    @UpdateTimestamp
     private Instant lastModified;
 
     public CompanyEmail() {

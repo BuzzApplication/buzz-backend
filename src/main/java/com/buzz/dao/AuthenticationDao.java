@@ -22,7 +22,7 @@ public class AuthenticationDao extends BaseDao<Authentication> {
                 .email(authenticationRequestBody.getEmail())
                 .password(authenticationRequestBody.getPassword())
                 .build();
-        getSessionProvider().getSession().save(authentication);
+        getSessionProvider().getSession().persist(authentication);
         getSessionProvider().commitTransaction();
     }
 

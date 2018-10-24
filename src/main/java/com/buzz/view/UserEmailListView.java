@@ -10,13 +10,13 @@ import static java.util.stream.Collectors.toList;
 /**
  * Created by toshikijahja on 10/18/17.
  */
-public class UserEmailsView {
+public class UserEmailListView {
 
     private final List<UserEmailView> userEmailViews;
     private final UserView userView;
 
-    public UserEmailsView(final List<UserEmail> userEmails,
-                          final User user) {
+    public UserEmailListView(final List<UserEmail> userEmails,
+                             final User user) {
         this.userEmailViews = userEmails.stream().map(UserEmailView::new).collect(toList());
         this.userView = new UserView(user);
     }
