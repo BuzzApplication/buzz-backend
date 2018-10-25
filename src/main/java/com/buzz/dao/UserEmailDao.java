@@ -6,6 +6,8 @@ import org.hibernate.query.Query;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Created by toshikijahja on 6/7/17.
  */
@@ -17,6 +19,11 @@ public class UserEmailDao extends BaseDao<UserEmail> {
 
     public List<UserEmail> getByUserId(final int userId) {
         return getByField("user.id", userId);
+    }
+
+    public Optional<UserEmail> getByEmail(final String email) {
+        requireNonNull(email);
+        return getFirst(getByField("email", email));
     }
 
     @SuppressWarnings("unchecked")

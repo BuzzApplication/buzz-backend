@@ -36,4 +36,17 @@ public class BuzzLikeDao extends BaseDao<BuzzLike> {
         query.setParameter("userId", userId);
         return query.list();
     }
+
+    public void likeBuzz(final int userId,
+                         final List<Integer> buzzIds) {
+        if (buzzIds.isEmpty()) {
+            return;
+        }
+        getSessionProvider().startTransaction();
+        buzzIds.forEach(buzzId -> {
+            final BuzzLike buzzLike = new BuzzLike.Builder().userId(userId).buzzId(buzzId).build();
+            getSessionProvider().getSession().persist(buzzLike);
+        });
+        getSessionProvider().commitTransaction();
+    }
 }

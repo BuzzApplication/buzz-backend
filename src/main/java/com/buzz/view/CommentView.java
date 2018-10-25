@@ -11,10 +11,6 @@ public class CommentView {
     private final Comment comment;
     private final boolean liked;
 
-    public CommentView(final Comment comment) {
-        this(comment, false);
-    }
-
     public CommentView(final Comment comment,
                        final boolean liked) {
         this.comment = comment;

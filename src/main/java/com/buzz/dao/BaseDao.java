@@ -6,6 +6,9 @@ import org.hibernate.query.Query;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
+
 /**
  * Created by toshikijahja on 7/29/17.
  */
@@ -44,6 +47,9 @@ public class BaseDao<T> {
 
     @SuppressWarnings("unchecked")
     public List<T> getByIds(final List<Integer> ids) {
+        if (ids.isEmpty()) {
+            return emptyList();
+        }
         final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName() + " WHERE id IN :ids");
         query.setParameterList("ids", ids);
         return query.list();
@@ -51,6 +57,7 @@ public class BaseDao<T> {
 
     @SuppressWarnings("unchecked")
     protected List<T> getByField(final String field, final String data) {
+        requireNonNull(field);
         final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA);
         query.setParameter(DATA, data);
         return query.list();
@@ -58,6 +65,7 @@ public class BaseDao<T> {
 
     @SuppressWarnings("unchecked")
     protected List<T> getByField(final String field, final Integer data) {
+        requireNonNull(field);
         final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA);
         query.setParameter(DATA, data);
         return query.list();
@@ -65,6 +73,7 @@ public class BaseDao<T> {
 
     @SuppressWarnings("unchecked")
     protected List<T> getByField(final String field, final Boolean data) {
+        requireNonNull(field);
         final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA);
         query.setParameter(DATA, data);
         return query.list();
@@ -72,6 +81,9 @@ public class BaseDao<T> {
 
     @SuppressWarnings("unchecked")
     protected List<T> getByFieldSorted(final String field, final String data, final String sortField, final Sort sort) {
+        requireNonNull(field);
+        requireNonNull(sortField);
+        requireNonNull(sort);
         final Query query = getSessionProvider().getSession().createQuery(
                 "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
         query.setParameter(DATA, data);
@@ -81,6 +93,9 @@ public class BaseDao<T> {
 
     @SuppressWarnings("unchecked")
     protected List<T> getByFieldSorted(final String field, final Integer data, final String sortField, final Sort sort) {
+        requireNonNull(field);
+        requireNonNull(sortField);
+        requireNonNull(sort);
         final Query query = getSessionProvider().getSession().createQuery(
                 "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
         query.setParameter(DATA, data);
@@ -90,6 +105,9 @@ public class BaseDao<T> {
 
     @SuppressWarnings("unchecked")
     protected List<T> getByFieldSorted(final String field, final Boolean data, final String sortField, final Sort sort) {
+        requireNonNull(field);
+        requireNonNull(sortField);
+        requireNonNull(sort);
         final Query query = getSessionProvider().getSession().createQuery(
                 "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
         query.setParameter(DATA, data);

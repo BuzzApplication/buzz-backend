@@ -11,6 +11,7 @@ import java.security.Key;
 import java.sql.Date;
 import java.time.Instant;
 
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.testng.Assert.assertEquals;
 
 /**
@@ -22,6 +23,10 @@ public class JWTUtil {
     private static final String ISSUER = "buzz-backend";
 
     public static String createJWT(final String id, final String subject) {
+        return createJWT(id, subject, null);
+    }
+
+    public static String createJWT(final String id, final String subject, final Integer expirationInHours) {
         final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
         final byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(KEY);
@@ -34,6 +39,10 @@ public class JWTUtil {
                 .setIssuer(ISSUER)
                 .setIssuedAt(Date.from(now))
                 .signWith(signatureAlgorithm, signingKey);
+
+        if (expirationInHours != null) {
+            builder.setExpiration(Date.from(now.plus(expirationInHours, HOURS)));
+        }
 
         //Builds the JWT and serializes it to a compact, URL-safe string
         return builder.compact();

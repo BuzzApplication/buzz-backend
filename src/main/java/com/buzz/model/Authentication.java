@@ -5,9 +5,13 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import java.time.Instant;
 import java.util.UUID;
+
+import static com.buzz.model.Authentication.Status.UNVERIFIED;
 
 @Entity
 public class Authentication {
@@ -22,12 +26,24 @@ public class Authentication {
     private String password;
 
     @Column
+    private String verificationCode;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Status status = UNVERIFIED;
+
+    @Column
     @CreationTimestamp
     private Instant created;
 
     @Column
     @UpdateTimestamp
     private Instant lastModified;
+
+    public enum Status {
+        VERIFIED,
+        UNVERIFIED,
+    }
 
     public Authentication() {
 
@@ -37,6 +53,8 @@ public class Authentication {
         setGuid(builder.guid);
         setEmail(builder.email);
         setPassword(builder.password);
+        setVerificationCode(builder.verificationCode);
+        setStatus(builder.status);
     }
 
     public String getGuid() {
@@ -63,6 +81,22 @@ public class Authentication {
         this.password = password;
     }
 
+    public String getVerificationCode() {
+        return this.verificationCode;
+    }
+
+    public void setVerificationCode(final String verificationCode) {
+        this.verificationCode = verificationCode;
+    }
+
+    public Status getStatus() {
+        return this.status;
+    }
+
+    public void setStatus(final Status status) {
+        this.status = status;
+    }
+
     public Instant getCreated() {
         return this.created;
     }
@@ -83,6 +117,8 @@ public class Authentication {
         private String guid = String.valueOf(UUID.randomUUID());
         private String email;
         private String password;
+        private String verificationCode;
+        private Status status;
 
         public Builder email(final String email) {
             this.email = email;
@@ -91,6 +127,16 @@ public class Authentication {
 
         public Builder password(final String password) {
             this.password = password;
+            return this;
+        }
+
+        public Builder verificationCode(final String verificationCode) {
+            this.verificationCode = verificationCode;
+            return this;
+        }
+
+        public Builder status(final Status status) {
+            this.status = status;
             return this;
         }
 

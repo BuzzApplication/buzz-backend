@@ -14,9 +14,11 @@ import com.buzz.model.Comment;
 import com.buzz.model.CommentLike;
 import com.buzz.model.User;
 import com.buzz.model.UserEmail;
+import com.buzz.requestBody.CommentLikeRequestBody;
 import com.buzz.requestBody.CommentRequestBody;
 import com.buzz.view.BuzzCommentListView;
 import com.buzz.view.BuzzView;
+import com.buzz.view.CommentListView;
 import com.buzz.view.CommentView;
 
 import javax.ws.rs.Consumes;
@@ -108,9 +110,50 @@ public class CommentSource {
             requireNonNull(commentRequestBody.getText());
             validateUserWorksAtCompany(user.getId(), buzz.get().getCompany().getId(), userEmailDao);
 
-            final Comment comment = commentDao.postComment(commentRequestBody, userEmail.get(), buzz.get().getId(), buzzDao);
+            final Comment comment = commentDao.postComment(commentRequestBody, userEmail.get(), buzzDao);
 
-            return new CommentView(comment);
+            return new CommentView(comment, false);
+        }
+    }
+
+    @POST
+    @Path("/comment/like")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public CommentListView likeComment(final CommentLikeRequestBody commentLikeRequestBody,
+                                       @Context final SecurityContext securityContext) throws Exception {
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final UserDao userDao = new UserDao(sessionProvider);
+            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
+            final CommentDao commentDao = new CommentDao(sessionProvider);
+            final CommentLikeDao commentLikeDao = new CommentLikeDao(sessionProvider);
+
+            final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
+            final List<Comment> commentList = commentDao.getByIds(commentLikeRequestBody.getCommentIds());
+            if (commentList.size() != commentLikeRequestBody.getCommentIds().size()) {
+                throw new Exception();
+            }
+
+            // liked comment
+            final List<CommentLike> commentLiked = commentLikeDao.getByUserIdAndCommentIds(user.getId(), commentLikeRequestBody.getCommentIds());
+            final List<Integer> commentLikedIds = commentLiked.stream().map(CommentLike::getCommentId).collect(toList());
+
+            // making sure to not like liked comment
+            final List<Integer> filteredCommentIds = commentLikeRequestBody.getCommentIds().stream()
+                    .filter(commentId -> !commentLikedIds.contains(commentId)).collect(toList());
+
+            sessionProvider.startTransaction();
+            commentLikeDao.likeComment(user.getId(), filteredCommentIds);
+            filteredCommentIds.forEach(commentDao::updateLikesCount);
+            sessionProvider.commitTransaction();
+
+            final List<Comment> updateCommentList = commentDao.getByIds(filteredCommentIds);
+            final List<CommentLike> updatedCommentLiked = commentLikeDao.getByUserIdAndCommentIds(user.getId(), filteredCommentIds);
+            final Set<Integer> updatedCommentLikedIds = updatedCommentLiked.stream().map(CommentLike::getCommentId).collect(toSet());
+
+            final List<CommentView> commentViews = updateCommentList.stream()
+                    .map(comment -> new CommentView(comment, updatedCommentLikedIds.contains(comment.getId()))).collect(toList());
+            return new CommentListView(commentViews);
         }
     }
 

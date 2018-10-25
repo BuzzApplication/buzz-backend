@@ -11,10 +11,6 @@ public class BuzzView {
     private final Buzz buzz;
     private final boolean liked;
 
-    public BuzzView(final Buzz buzz) {
-        this(buzz, false);
-    }
-
     public BuzzView(final Buzz buzz,
                     final boolean liked) {
         this.buzz = buzz;

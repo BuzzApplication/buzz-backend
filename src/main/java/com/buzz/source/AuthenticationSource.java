@@ -1,8 +1,15 @@
 package com.buzz.source;
 
 import com.buzz.dao.AuthenticationDao;
+import com.buzz.dao.CompanyEmailDao;
 import com.buzz.dao.SessionProvider;
+import com.buzz.dao.UserDao;
+import com.buzz.dao.UserEmailDao;
+import com.buzz.model.Authentication;
+import com.buzz.model.CompanyEmail;
+import com.buzz.model.UserEmail;
 import com.buzz.requestBody.AuthenticationRequestBody;
+import com.buzz.requestBody.AuthenticationVerificationRequestBody;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -10,9 +17,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Optional;
 
 import static com.buzz.auth.JWTUtil.createJWT;
 import static com.buzz.auth.JWTUtil.getSubject;
+import static com.buzz.model.Authentication.Status.UNVERIFIED;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -23,12 +32,30 @@ public class AuthenticationSource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createAuthentication(final AuthenticationRequestBody authenticationRequestBody) {
+    public Response createAuthentication(final AuthenticationRequestBody authenticationRequestBody) throws Exception {
         requireNonNull(authenticationRequestBody.getEmail());
         requireNonNull(authenticationRequestBody.getPassword());
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final AuthenticationDao authenticationDao = new AuthenticationDao(sessionProvider);
-            authenticationDao.createAuthentication(authenticationRequestBody);
+            final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
+            final CompanyEmailDao companyEmailDao = new CompanyEmailDao(sessionProvider);
+
+            // check if email is already being taken
+            final Optional<UserEmail> userEmail = userEmailDao.getByEmail(authenticationRequestBody.getEmail());
+            if (userEmail.isPresent()) {
+                throw new Exception();
+            }
+
+            // check if email is whitelisted
+            final Optional<CompanyEmail> companyEmail = companyEmailDao.getByEmail(authenticationRequestBody.getEmail());
+            if (!companyEmail.isPresent()) {
+                throw new Exception();
+            }
+
+            final Authentication authentication = authenticationDao.createAuthentication(authenticationRequestBody);
+
+            // TODO: send email with verification and link
+            final String tokenLink = createJWT(authentication.getEmail(), authentication.getVerificationCode(), 2);
         }
         return Response.ok().build();
     }
@@ -37,24 +64,54 @@ public class AuthenticationSource {
     @Path("/authenticate")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response authenticateUser(final AuthenticationRequestBody authenticationRequestBody) {
+    public Response authenticateUser(final AuthenticationRequestBody authenticationRequestBody) throws Exception {
         requireNonNull(authenticationRequestBody.getEmail());
         requireNonNull(authenticationRequestBody.getPassword());
 
-        try {
-            final String guid = authenticate(authenticationRequestBody.getEmail(), authenticationRequestBody.getPassword());
-            final String token = issueToken(guid, authenticationRequestBody.getEmail());
-            return Response.ok(token).build();
-        } catch (final Exception e) {
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-    }
-
-    private String authenticate(final String email, final String password) throws Exception {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final AuthenticationDao authenticationDao = new AuthenticationDao(sessionProvider);
-            return authenticationDao.authenticate(email, password);
+            final Authentication authentication = authenticationDao.authenticate(
+                    authenticationRequestBody.getEmail(),
+                    authenticationRequestBody.getPassword());
+
+            if (authentication.getStatus() == UNVERIFIED) {
+                return Response.ok().build();
+            }
+
+            final String token = issueToken(authentication.getGuid(), authenticationRequestBody.getEmail());
+            return Response.ok(token).build();
         }
+
+    }
+
+    @POST
+    @Path("/verify")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response verifyUser(final AuthenticationVerificationRequestBody authenticationVerificationRequestBody) throws Exception {
+        requireNonNull(authenticationVerificationRequestBody.getEmail());
+        requireNonNull(authenticationVerificationRequestBody.getPassword());
+        requireNonNull(authenticationVerificationRequestBody.getVerificationCode());
+
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final AuthenticationDao authenticationDao = new AuthenticationDao(sessionProvider);
+            final UserDao userDao = new UserDao(sessionProvider);
+            final Authentication authentication = authenticationDao.authenticate(
+                    authenticationVerificationRequestBody.getEmail(),
+                    authenticationVerificationRequestBody.getPassword());
+
+            if (authentication.getStatus() == UNVERIFIED) {
+                authenticationDao.verify(authenticationVerificationRequestBody.getEmail(), authenticationVerificationRequestBody.getVerificationCode());
+            }
+
+            sessionProvider.startTransaction();
+            authenticationDao.setVerified(authentication.getGuid());
+            userDao.createUser(authentication.getGuid());
+            sessionProvider.commitTransaction();
+            final String token = issueToken(authentication.getGuid(), authenticationVerificationRequestBody.getEmail());
+            return Response.ok(token).build();
+        }
+
     }
 
     private String issueToken(final String guid, final String email) {
