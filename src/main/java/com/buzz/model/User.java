@@ -22,6 +22,9 @@ public class User {
     private int id;
 
     @Column(nullable = false)
+    private String guid;
+
+    @Column(nullable = false)
     private String alias;
 
     @Column
@@ -47,6 +50,7 @@ public class User {
 
     public User(final Builder builder) {
         setAlias(builder.alias);
+        setGuid(builder.guid);
         setStatus(builder.status);
     }
 
@@ -56,6 +60,14 @@ public class User {
 
     public void setId(final int id) {
         this.id = id;
+    }
+
+    public String getGuid() {
+        return this.guid;
+    }
+
+    public void setGuid(final String guid) {
+        this.guid = guid;
     }
 
     public String getAlias() {
@@ -92,10 +104,16 @@ public class User {
 
     public static class Builder {
         private String alias;
+        private String guid;
         private Status status;
 
         public Builder alias(final String alias) {
             this.alias = alias;
+            return this;
+        }
+
+        public Builder guid(final String guid) {
+            this.guid = guid;
             return this;
         }
 

@@ -36,4 +36,17 @@ public class CommentLikeDao extends BaseDao<CommentLike> {
         query.setParameter("userId", userId);
         return query.list();
     }
+
+    public void likeComment(final int userId,
+                            final List<Integer> commentIds) {
+        if (commentIds.isEmpty()) {
+            return;
+        }
+        getSessionProvider().startTransaction();
+        commentIds.forEach(commentId -> {
+            final CommentLike commentLike = new CommentLike.Builder().userId(userId).commentId(commentId).build();
+            getSessionProvider().getSession().persist(commentLike);
+        });
+        getSessionProvider().commitTransaction();
+    }
 }

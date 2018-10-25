@@ -12,6 +12,7 @@ import com.buzz.model.BuzzLike;
 import com.buzz.model.Company;
 import com.buzz.model.User;
 import com.buzz.model.UserEmail;
+import com.buzz.requestBody.BuzzLikeRequestBody;
 import com.buzz.requestBody.BuzzRequestBody;
 import com.buzz.view.BuzzListView;
 import com.buzz.view.BuzzView;
@@ -64,9 +65,16 @@ public class BuzzSource {
         }
     }
 
+    /**
+     * Validate user works at the company, unless it is at `Everyone` company (companyId = 1)
+     * @param userId
+     * @param companyId
+     * @param userEmailDao
+     * @throws Exception
+     */
     public static void validateUserWorksAtCompany(final int userId, final int companyId, final UserEmailDao userEmailDao) throws Exception {
         final Optional<UserEmail> userEmail = userEmailDao.getByUserIdAndCompanyId(userId, companyId);
-        if (!userEmail.isPresent()) {
+        if (!userEmail.isPresent() && companyId != 1) {
             throw new Exception();
         }
     }
@@ -104,7 +112,47 @@ public class BuzzSource {
 
             final Buzz buzz = buzzDao.postBuzz(buzzRequestBody, userEmail.get(), company.get());
 
-            return new BuzzView(buzz);
+            return new BuzzView(buzz, false);
+        }
+    }
+
+    @POST
+    @Path("/buzz/like")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public BuzzListView likeBuzz(final BuzzLikeRequestBody buzzLikeRequestBody,
+                                 @Context final SecurityContext securityContext) throws Exception {
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final UserDao userDao = new UserDao(sessionProvider);
+            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
+            final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+
+            final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
+            final List<Buzz> buzzList = buzzDao.getByIds(buzzLikeRequestBody.getBuzzIds());
+            if (buzzList.size() != buzzLikeRequestBody.getBuzzIds().size()) {
+                throw new Exception();
+            }
+
+            // liked buzz
+            final List<BuzzLike> buzzLiked = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzLikeRequestBody.getBuzzIds());
+            final List<Integer> buzzLikedIds = buzzLiked.stream().map(BuzzLike::getBuzzId).collect(toList());
+
+            // making sure to not like liked buzz
+            final List<Integer> filteredBuzzIds = buzzLikeRequestBody.getBuzzIds().stream()
+                    .filter(buzzId -> !buzzLikedIds.contains(buzzId)).collect(toList());
+
+            sessionProvider.startTransaction();
+            buzzLikeDao.likeBuzz(user.getId(), filteredBuzzIds);
+            filteredBuzzIds.forEach(buzzDao::updateLikesCount);
+            sessionProvider.commitTransaction();
+
+            final List<Buzz> updateBuzzList = buzzDao.getByIds(filteredBuzzIds);
+            final List<BuzzLike> updatedBuzzLiked = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), filteredBuzzIds);
+            final Set<Integer> updatedBuzzLikedIds = updatedBuzzLiked.stream().map(BuzzLike::getBuzzId).collect(toSet());
+
+            final List<BuzzView> buzzViews = updateBuzzList.stream()
+                    .map(buzz -> new BuzzView(buzz, updatedBuzzLikedIds.contains(buzz.getId()))).collect(toList());
+            return new BuzzListView(buzzViews);
         }
     }
 

@@ -13,6 +13,8 @@ CREATE TABLE `Authentication` (
   `guid` varchar(36) NOT NULL,
   `email` varchar(1024) DEFAULT NULL,
   `password` varchar(1024) DEFAULT NULL,
+  `verificationCode` varchar(4) DEFAULT NULL,
+  `status` enum('VERIFIED', 'UNVERIFIED') CHARACTER SET utf8 NOT NULL DEFAULT 'UNVERIFIED',
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `lastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`guid`)

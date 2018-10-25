@@ -1,9 +1,12 @@
 package com.buzz.dao;
 
 import com.buzz.model.User;
+import org.apache.commons.lang.RandomStringUtils;
+import org.hibernate.query.Query;
 
 import java.util.Optional;
 
+import static com.buzz.model.User.Status.ACTIVE;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -20,19 +23,33 @@ public class UserDao extends BaseDao<User> {
         return getFirst(getByField("guid", guid));
     }
 
-//    public UserView createUser(final CreateUserRequestBody createUserRequestBody) {
-//        getSessionProvider().startTransaction();
-//        final User user = new User.Builder()
-//                .firstName(createUserRequestBody.getFirstName())
-//                .lastName(createUserRequestBody.getLastName())
-//                .resumeUrl(createUserRequestBody.getResumeUrl())
-//                .email(createUserRequestBody.getEmail())
-//                .standingYear(createUserRequestBody.getStandingYear())
-//                .degree(createUserRequestBody.getDegree())
-//                .birthDate(new java.util.Date(createUserRequestBody.getBirthDate()))
-//                .build();
-//        getSessionProvider().getSession().save(user);
-//        getSessionProvider().commitTransaction();
-//        return new UserView(user);
-//    }
+    public Optional<User> getByAlias(final String alias) {
+        requireNonNull(alias);
+        return getFirst(getByField("alias", alias));
+    }
+
+    public User createUser(final String guid) {
+        requireNonNull(guid);
+        getSessionProvider().startTransaction();
+        final User user = new User.Builder()
+                .status(ACTIVE)
+                .guid(guid)
+                .alias(generateRandomAlias())
+                .build();
+        getSessionProvider().getSession().persist(user);
+        getSessionProvider().commitTransaction();
+        return user;
+    }
+
+    private String generateRandomAlias() {
+        return RandomStringUtils.random(6, true, true);
+    }
+
+    public void setAlias(final String alias) {
+        requireNonNull(alias);
+        final Query query = getSessionProvider().getSession().createQuery(
+                "UPDATE " + clazz.getName() + " SET alias = :alias");
+        query.setParameter("alias", alias);
+        query.executeUpdate();
+    }
 }

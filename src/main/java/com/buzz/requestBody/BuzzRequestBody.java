@@ -10,6 +10,7 @@ public class BuzzRequestBody implements Serializable {
     private String text;
     private int companyId;
     private int userEmailId;
+    private boolean anonymous;
 
     public BuzzRequestBody() {
 
@@ -37,5 +38,13 @@ public class BuzzRequestBody implements Serializable {
 
     public void setUserEmailId(final int userEmailId) {
         this.userEmailId = userEmailId;
+    }
+
+    public boolean isAnonymous() {
+        return this.anonymous;
+    }
+
+    public void setAnonymous(final boolean anonymous) {
+        this.anonymous = anonymous;
     }
 }
