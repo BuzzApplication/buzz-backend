@@ -54,8 +54,7 @@ public class AuthenticationSource {
 
             final Authentication authentication = authenticationDao.createAuthentication(authenticationRequestBody);
 
-            // TODO: send email with verification and link
-            final String tokenLink = createJWT(authentication.getEmail(), authentication.getVerificationCode(), 2);
+            // TODO: send email with verification
         }
         return Response.ok().build();
     }
@@ -111,7 +110,6 @@ public class AuthenticationSource {
             final String token = issueToken(authentication.getGuid(), authenticationVerificationRequestBody.getEmail());
             return Response.ok(token).build();
         }
-
     }
 
     private String issueToken(final String guid, final String email) {

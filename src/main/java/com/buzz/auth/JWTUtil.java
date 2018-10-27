@@ -57,6 +57,6 @@ public class JWTUtil {
     }
 
     public static String getSubject(final String guid, final String email) {
-        return guid + "." + email;
+        return guid + "###" + email;
     }
 }
