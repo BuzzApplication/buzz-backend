@@ -22,6 +22,7 @@ import com.buzz.view.CommentListView;
 import com.buzz.view.CommentView;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -47,6 +48,8 @@ public class CommentSource {
     @Path("/comment")
     @Produces(MediaType.APPLICATION_JSON)
     public BuzzCommentListView getCommentByBuzzId(@QueryParam("buzzId") final int buzzId,
+                                                  @QueryParam("start") @DefaultValue("0") final int start,
+                                                  @QueryParam("limit") @DefaultValue("50") final int limit,
                                                   @Context final SecurityContext securityContext) throws Exception {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
@@ -63,7 +66,7 @@ public class CommentSource {
             }
             validateUserWorksAtCompany(user.getId(), buzz.get().getCompany().getId(), userEmailDao);
 
-            final List<Comment> commentList = commentDao.getByBuzzId(buzz.get().getId());
+            final List<Comment> commentList = commentDao.getByBuzzId(buzz.get().getId(), start, limit);
             final List<Integer> commentIds = commentList.stream().map(Comment::getId).collect(toList());
             final List<CommentLike> commentLikes = commentLikeDao.getByUserIdAndCommentIds(user.getId(), commentIds);
             final Set<Integer> commentLikeIds = commentLikes.stream().map(CommentLike::getCommentId).collect(toSet());

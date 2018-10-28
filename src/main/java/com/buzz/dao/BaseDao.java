@@ -80,7 +80,12 @@ public class BaseDao<T> {
     }
 
     @SuppressWarnings("unchecked")
-    protected List<T> getByFieldSorted(final String field, final String data, final String sortField, final Sort sort) {
+    protected List<T> getByFieldSortedAndPaginated(final String field,
+                                                   final String data,
+                                                   final String sortField,
+                                                   final Sort sort,
+                                                   final int start,
+                                                   final int limit) {
         requireNonNull(field);
         requireNonNull(sortField);
         requireNonNull(sort);
@@ -88,11 +93,18 @@ public class BaseDao<T> {
                 "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
         query.setParameter(DATA, data);
         query.setParameter(SORT_FIELD, sortField);
+        query.setFirstResult(start);
+        query.setMaxResults(limit);
         return query.list();
     }
 
     @SuppressWarnings("unchecked")
-    protected List<T> getByFieldSorted(final String field, final Integer data, final String sortField, final Sort sort) {
+    protected List<T> getByFieldSortedAndPaginated(final String field,
+                                                   final Integer data,
+                                                   final String sortField,
+                                                   final Sort sort,
+                                                   final int start,
+                                                   final int limit) {
         requireNonNull(field);
         requireNonNull(sortField);
         requireNonNull(sort);
@@ -100,11 +112,18 @@ public class BaseDao<T> {
                 "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
         query.setParameter(DATA, data);
         query.setParameter(SORT_FIELD, sortField);
+        query.setFirstResult(start);
+        query.setMaxResults(limit);
         return query.list();
     }
 
     @SuppressWarnings("unchecked")
-    protected List<T> getByFieldSorted(final String field, final Boolean data, final String sortField, final Sort sort) {
+    protected List<T> getByFieldSortedAndPaginated(final String field,
+                                                   final Boolean data,
+                                                   final String sortField,
+                                                   final Sort sort,
+                                                   final int start,
+                                                   final int limit) {
         requireNonNull(field);
         requireNonNull(sortField);
         requireNonNull(sort);
@@ -112,6 +131,8 @@ public class BaseDao<T> {
                 "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
         query.setParameter(DATA, data);
         query.setParameter(SORT_FIELD, sortField);
+        query.setFirstResult(start);
+        query.setMaxResults(limit);
         return query.list();
     }
 
