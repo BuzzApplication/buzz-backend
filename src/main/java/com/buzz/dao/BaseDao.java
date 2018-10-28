@@ -6,6 +6,7 @@ import org.hibernate.query.Query;
 import java.util.List;
 import java.util.Optional;
 
+import static com.buzz.utils.QueryUtils.listObjectToSqlQueryInString;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
@@ -56,7 +57,7 @@ public class BaseDao<T> {
     }
 
     @SuppressWarnings("unchecked")
-    protected List<T> getByField(final String field, final String data) {
+    protected List<T> getByField(final String field, final Object data) {
         requireNonNull(field);
         final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA);
         query.setParameter(DATA, data);
@@ -64,24 +65,35 @@ public class BaseDao<T> {
     }
 
     @SuppressWarnings("unchecked")
-    protected List<T> getByField(final String field, final Integer data) {
+    protected List<T> getByFieldSorted(final String field,
+                                       final Object data,
+                                       final String sortField,
+                                       final Sort sort) {
         requireNonNull(field);
-        final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA);
+        requireNonNull(sortField);
+        requireNonNull(sort);
+        final Query query = getSessionProvider().getSession().createQuery(
+                "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY " + sortField + " " + sort);
         query.setParameter(DATA, data);
         return query.list();
     }
 
     @SuppressWarnings("unchecked")
-    protected List<T> getByField(final String field, final Boolean data) {
+    protected List<T> getByFieldSorted(final String field,
+                                       final List<Integer> dataList,
+                                       final String sortField,
+                                       final Sort sort) {
         requireNonNull(field);
-        final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA);
-        query.setParameter(DATA, data);
+        requireNonNull(sortField);
+        requireNonNull(sort);
+        final Query query = getSessionProvider().getSession().createQuery(
+                "FROM " + clazz.getName() + " WHERE " + field + " IN " + listObjectToSqlQueryInString(dataList) + " ORDER BY " + sortField + " " + sort);
         return query.list();
     }
 
     @SuppressWarnings("unchecked")
     protected List<T> getByFieldSortedAndPaginated(final String field,
-                                                   final String data,
+                                                   final Object data,
                                                    final String sortField,
                                                    final Sort sort,
                                                    final int start,
@@ -90,9 +102,8 @@ public class BaseDao<T> {
         requireNonNull(sortField);
         requireNonNull(sort);
         final Query query = getSessionProvider().getSession().createQuery(
-                "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
+                "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY " + sortField + " " + sort);
         query.setParameter(DATA, data);
-        query.setParameter(SORT_FIELD, sortField);
         query.setFirstResult(start);
         query.setMaxResults(limit);
         return query.list();
@@ -100,7 +111,7 @@ public class BaseDao<T> {
 
     @SuppressWarnings("unchecked")
     protected List<T> getByFieldSortedAndPaginated(final String field,
-                                                   final Integer data,
+                                                   final List<Integer> dataList,
                                                    final String sortField,
                                                    final Sort sort,
                                                    final int start,
@@ -109,28 +120,7 @@ public class BaseDao<T> {
         requireNonNull(sortField);
         requireNonNull(sort);
         final Query query = getSessionProvider().getSession().createQuery(
-                "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
-        query.setParameter(DATA, data);
-        query.setParameter(SORT_FIELD, sortField);
-        query.setFirstResult(start);
-        query.setMaxResults(limit);
-        return query.list();
-    }
-
-    @SuppressWarnings("unchecked")
-    protected List<T> getByFieldSortedAndPaginated(final String field,
-                                                   final Boolean data,
-                                                   final String sortField,
-                                                   final Sort sort,
-                                                   final int start,
-                                                   final int limit) {
-        requireNonNull(field);
-        requireNonNull(sortField);
-        requireNonNull(sort);
-        final Query query = getSessionProvider().getSession().createQuery(
-                "FROM " + clazz.getName() + " WHERE " + field + " = :" + DATA + " ORDER BY :" + SORT_FIELD + " " + sort);
-        query.setParameter(DATA, data);
-        query.setParameter(SORT_FIELD, sortField);
+                "FROM " + clazz.getName() + " WHERE " + field + " IN " + listObjectToSqlQueryInString(dataList) + " ORDER BY " + sortField + " " + sort);
         query.setFirstResult(start);
         query.setMaxResults(limit);
         return query.list();

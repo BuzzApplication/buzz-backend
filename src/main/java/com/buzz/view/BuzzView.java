@@ -25,8 +25,8 @@ public class BuzzView {
         return buzz.getText();
     }
 
-    public CompanyView getCompany() {
-        return new CompanyView(buzz.getCompany());
+    public int getCompanyId() {
+        return buzz.getCompanyId();
     }
 
     public String getAlias() {

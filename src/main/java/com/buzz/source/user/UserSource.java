@@ -45,6 +45,9 @@ public class UserSource {
             final UserDao userDao = new UserDao(sessionProvider);
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
             final List<UserEmail> userEmails = userEmailDao.getByUserId(user.getId());
+            for (UserEmail userEmail : userEmails) {
+                System.out.println("userEmail: " + userEmail.getCompany().getName());
+            }
             return new UserEmailListView(userEmails, user);
         }
     }

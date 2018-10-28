@@ -37,6 +37,10 @@ public class CommentLikeDao extends BaseDao<CommentLike> {
         return query.list();
     }
 
+    public void likeComment(final int userId, int commentId) {
+        likeComment(userId, singletonList(commentId));
+    }
+
     public void likeComment(final int userId,
                             final List<Integer> commentIds) {
         if (commentIds.isEmpty()) {
@@ -47,6 +51,16 @@ public class CommentLikeDao extends BaseDao<CommentLike> {
             final CommentLike commentLike = new CommentLike.Builder().userId(userId).commentId(commentId).build();
             getSessionProvider().getSession().persist(commentLike);
         });
+        getSessionProvider().commitTransaction();
+    }
+
+    public void dislikeComment(final int userId, final int commentId) throws Exception {
+        getSessionProvider().startTransaction();
+        final Optional<CommentLike> commentLike = getByUserIdAndCommentId(userId, commentId);
+        if (!commentLike.isPresent()) {
+            throw new Exception();
+        }
+        getSessionProvider().getSession().delete(commentLike.get());
         getSessionProvider().commitTransaction();
     }
 }
