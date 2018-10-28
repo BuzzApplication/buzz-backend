@@ -6,6 +6,10 @@ import org.hibernate.query.Query;
 import java.util.List;
 import java.util.Optional;
 
+import static com.buzz.dao.BaseDao.Sort.ASC;
+import static com.buzz.utils.QueryUtils.listObjectToSqlQueryInString;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -18,7 +22,7 @@ public class UserEmailDao extends BaseDao<UserEmail> {
     }
 
     public List<UserEmail> getByUserId(final int userId) {
-        return getByField("user.id", userId);
+        return getByFieldSorted("user.id", userId, "created", ASC);
     }
 
     public Optional<UserEmail> getByEmail(final String email) {
@@ -28,10 +32,18 @@ public class UserEmailDao extends BaseDao<UserEmail> {
 
     @SuppressWarnings("unchecked")
     public Optional<UserEmail> getByUserIdAndCompanyId(final int userId, final int companyId) {
+        final List<UserEmail> userEmails = getByUserIdAndCompanyIds(userId, singletonList(companyId));
+        return getFirst(userEmails);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<UserEmail> getByUserIdAndCompanyIds(final int userId, final List<Integer> companyIds) {
+        if (companyIds.isEmpty()) {
+            return emptyList();
+        }
         final Query query = getSessionProvider().getSession().createQuery(
-                "FROM " + clazz.getName() + " WHERE user.id = :userId AND company.id = :companyId");
+                "FROM " + clazz.getName() + " WHERE user.id = :userId AND company.id IN " + listObjectToSqlQueryInString(companyIds));
         query.setParameter("userId", userId);
-        query.setParameter("companyId", companyId);
-        return getFirst(query.list());
+        return query.list();
     }
 }

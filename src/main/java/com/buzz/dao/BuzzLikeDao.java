@@ -37,6 +37,10 @@ public class BuzzLikeDao extends BaseDao<BuzzLike> {
         return query.list();
     }
 
+    public void likeBuzz(final int userId, final int buzzId) {
+        likeBuzz(userId, singletonList(buzzId));
+    }
+
     public void likeBuzz(final int userId,
                          final List<Integer> buzzIds) {
         if (buzzIds.isEmpty()) {
@@ -47,6 +51,16 @@ public class BuzzLikeDao extends BaseDao<BuzzLike> {
             final BuzzLike buzzLike = new BuzzLike.Builder().userId(userId).buzzId(buzzId).build();
             getSessionProvider().getSession().persist(buzzLike);
         });
+        getSessionProvider().commitTransaction();
+    }
+
+    public void dislikeBuzz(final int userId, final int buzzId) throws Exception {
+        getSessionProvider().startTransaction();
+        final Optional<BuzzLike> buzzLike = getByUserIdAndBuzzId(userId, buzzId);
+        if (!buzzLike.isPresent()) {
+            throw new Exception();
+        }
+        getSessionProvider().getSession().delete(buzzLike.get());
         getSessionProvider().commitTransaction();
     }
 }

@@ -18,4 +18,8 @@ public class CompanyView {
         return company.getName();
     }
 
+    public int getId() {
+        return company.getId();
+    }
+
 }

@@ -20,10 +20,10 @@ public class BuzzDao extends BaseDao<Buzz> {
         super(sessionProvider, Buzz.class);
     }
 
-    public List<Buzz> getByCompanyId(final int companyId,
-                                     final int start,
-                                     final int limit) {
-        return getByFieldSortedAndPaginated("company.id", companyId, "created", DESC, start, limit);
+    public List<Buzz> getByCompanyIds(final List<Integer> companyIds,
+                                      final int start,
+                                      final int limit) {
+        return getByFieldSortedAndPaginated("companyId", companyIds, "created", DESC, start, limit);
     }
 
     public Buzz postBuzz(final BuzzRequestBody buzzRequestBody,
@@ -35,7 +35,7 @@ public class BuzzDao extends BaseDao<Buzz> {
         getSessionProvider().startTransaction();
         final Buzz buzz = new Buzz.Builder()
                 .alias(buzzRequestBody.isAnonymous() ? null : userEmail.getUser().getAlias())
-                .company(company)
+                .companyId(company.getId())
                 .text(buzzRequestBody.getText())
                 .userEmail(userEmail)
                 .build();
@@ -51,9 +51,16 @@ public class BuzzDao extends BaseDao<Buzz> {
         query.executeUpdate();
     }
 
-    public void updateLikesCount(final int buzzId) {
+    public void increaseLikesCount(final int buzzId) {
         final Query query = getSessionProvider().getSession().createQuery(
                 "UPDATE " + clazz.getName() + " SET likesCount = likesCount + 1 WHERE id = :buzzId");
+        query.setParameter("buzzId", buzzId);
+        query.executeUpdate();
+    }
+
+    public void decreaseLikesCount(final int buzzId) {
+        final Query query = getSessionProvider().getSession().createQuery(
+                "UPDATE " + clazz.getName() + " SET likesCount = likesCount - 1 WHERE id = :buzzId");
         query.setParameter("buzzId", buzzId);
         query.executeUpdate();
     }

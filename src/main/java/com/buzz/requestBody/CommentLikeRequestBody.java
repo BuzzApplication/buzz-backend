@@ -1,24 +1,32 @@
 package com.buzz.requestBody;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * Created by toshikijahja on 11/5/17.
  */
 public class CommentLikeRequestBody implements Serializable {
 
-    private List<Integer> commentIds;
+    private int commentId;
+    private boolean liked;
 
     public CommentLikeRequestBody() {
 
     }
 
-    public List<Integer> getCommentIds() {
-        return commentIds;
+    public int getCommentId() {
+        return commentId;
     }
 
-    public void setCommentIds(final List<Integer> commentIds) {
-        this.commentIds = commentIds;
+    public void setCommentId(final int commentId) {
+        this.commentId = commentId;
+    }
+
+    public boolean isLiked() {
+        return liked;
+    }
+
+    public void setLiked(final boolean liked) {
+        this.liked = liked;
     }
 }

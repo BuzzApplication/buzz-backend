@@ -18,7 +18,6 @@ import com.buzz.requestBody.CommentLikeRequestBody;
 import com.buzz.requestBody.CommentRequestBody;
 import com.buzz.view.BuzzCommentListView;
 import com.buzz.view.BuzzView;
-import com.buzz.view.CommentListView;
 import com.buzz.view.CommentView;
 
 import javax.ws.rs.Consumes;
@@ -64,7 +63,7 @@ public class CommentSource {
             if (!buzz.isPresent()) {
                 throw new Exception();
             }
-            validateUserWorksAtCompany(user.getId(), buzz.get().getCompany().getId(), userEmailDao);
+            validateUserWorksAtCompany(user.getId(), buzz.get().getCompanyId(), userEmailDao);
 
             final List<Comment> commentList = commentDao.getByBuzzId(buzz.get().getId(), start, limit);
             final List<Integer> commentIds = commentList.stream().map(Comment::getId).collect(toList());
@@ -111,7 +110,7 @@ public class CommentSource {
             }
 
             requireNonNull(commentRequestBody.getText());
-            validateUserWorksAtCompany(user.getId(), buzz.get().getCompany().getId(), userEmailDao);
+            validateUserWorksAtCompany(user.getId(), buzz.get().getCompanyId(), userEmailDao);
 
             final Comment comment = commentDao.postComment(commentRequestBody, userEmail.get(), buzzDao);
 
@@ -123,40 +122,36 @@ public class CommentSource {
     @Path("/comment/like")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public CommentListView likeComment(final CommentLikeRequestBody commentLikeRequestBody,
+    public CommentView likeComment(final CommentLikeRequestBody commentLikeRequestBody,
                                        @Context final SecurityContext securityContext) throws Exception {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
-            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final CommentDao commentDao = new CommentDao(sessionProvider);
             final CommentLikeDao commentLikeDao = new CommentLikeDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
-            final List<Comment> commentList = commentDao.getByIds(commentLikeRequestBody.getCommentIds());
-            if (commentList.size() != commentLikeRequestBody.getCommentIds().size()) {
+            final Optional<Comment> comment = commentDao.getByIdOptional(commentLikeRequestBody.getCommentId());
+            if (!comment.isPresent()) {
                 throw new Exception();
             }
 
-            // liked comment
-            final List<CommentLike> commentLiked = commentLikeDao.getByUserIdAndCommentIds(user.getId(), commentLikeRequestBody.getCommentIds());
-            final List<Integer> commentLikedIds = commentLiked.stream().map(CommentLike::getCommentId).collect(toList());
-
-            // making sure to not like liked comment
-            final List<Integer> filteredCommentIds = commentLikeRequestBody.getCommentIds().stream()
-                    .filter(commentId -> !commentLikedIds.contains(commentId)).collect(toList());
+            // already liked/unliked
+            final Optional<CommentLike> commentLiked = commentLikeDao.getByUserIdAndCommentId(user.getId(), commentLikeRequestBody.getCommentId());
+            if (commentLikeRequestBody.isLiked() == commentLiked.isPresent()) {
+                return new CommentView(comment.get(), commentLiked.isPresent());
+            }
 
             sessionProvider.startTransaction();
-            commentLikeDao.likeComment(user.getId(), filteredCommentIds);
-            filteredCommentIds.forEach(commentDao::updateLikesCount);
+            if (commentLikeRequestBody.isLiked()) {
+                commentLikeDao.likeComment(user.getId(), commentLikeRequestBody.getCommentId());
+                commentDao.increaseLikesCount(comment.get().getId());
+            } else {
+                commentLikeDao.dislikeComment(user.getId(), commentLikeRequestBody.getCommentId());
+                commentDao.decreaseLikesCount(comment.get().getId());
+            }
             sessionProvider.commitTransaction();
 
-            final List<Comment> updateCommentList = commentDao.getByIds(filteredCommentIds);
-            final List<CommentLike> updatedCommentLiked = commentLikeDao.getByUserIdAndCommentIds(user.getId(), filteredCommentIds);
-            final Set<Integer> updatedCommentLikedIds = updatedCommentLiked.stream().map(CommentLike::getCommentId).collect(toSet());
-
-            final List<CommentView> commentViews = updateCommentList.stream()
-                    .map(comment -> new CommentView(comment, updatedCommentLikedIds.contains(comment.getId()))).collect(toList());
-            return new CommentListView(commentViews);
+            return new CommentView(comment.get(), commentLikeRequestBody.isLiked());
         }
     }
 

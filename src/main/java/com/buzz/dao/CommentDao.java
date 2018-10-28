@@ -44,9 +44,16 @@ public class CommentDao extends BaseDao<Comment> {
         return comment;
     }
 
-    public void updateLikesCount(final int commentId) {
+    public void increaseLikesCount(final int commentId) {
         final Query query = getSessionProvider().getSession().createQuery(
                 "UPDATE " + clazz.getName() + " SET likesCount = likesCount + 1 WHERE id = :commentId");
+        query.setParameter("commentId", commentId);
+        query.executeUpdate();
+    }
+
+    public void decreaseLikesCount(final int commentId) {
+        final Query query = getSessionProvider().getSession().createQuery(
+                "UPDATE " + clazz.getName() + " SET likesCount = likesCount - 1 WHERE id = :commentId");
         query.setParameter("commentId", commentId);
         query.executeUpdate();
     }

@@ -28,9 +28,8 @@ public class Buzz {
     @Type(type="text")
     private String text;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "companyId")
-    private Company company;
+    @Column
+    private int companyId;
 
     @Column(nullable = false)
     private String alias;
@@ -59,7 +58,7 @@ public class Buzz {
 
     public Buzz(final Builder builder) {
         setText(builder.text);
-        setCompany(builder.company);
+        setCompanyId(builder.companyId);
         setAlias(builder.alias);
         setUserEmail(builder.userEmail);
         setLikesCount(builder.likesCount);
@@ -82,12 +81,12 @@ public class Buzz {
         this.text = text;
     }
 
-    public Company getCompany() {
-        return this.company;
+    public int getCompanyId() {
+        return this.companyId;
     }
 
-    public void setCompany(final Company company) {
-        this.company = company;
+    public void setCompanyId(final int companyId) {
+        this.companyId = companyId;
     }
 
     public String getAlias() {
@@ -140,7 +139,7 @@ public class Buzz {
 
     public static class Builder {
         private String text;
-        private Company company;
+        private int companyId;
         private String alias;
         private UserEmail userEmail;
         private int likesCount;
@@ -151,8 +150,8 @@ public class Buzz {
             return this;
         }
 
-        public Builder company(final Company company) {
-            this.company = company;
+        public Builder companyId(final int companyId) {
+            this.companyId = companyId;
             return this;
         }
 
