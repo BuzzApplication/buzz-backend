@@ -20,8 +20,10 @@ public class BuzzDao extends BaseDao<Buzz> {
         super(sessionProvider, Buzz.class);
     }
 
-    public List<Buzz> getByCompanyId(final int companyId) {
-        return getByFieldSorted("company.id", companyId, "created", DESC);
+    public List<Buzz> getByCompanyId(final int companyId,
+                                     final int start,
+                                     final int limit) {
+        return getByFieldSortedAndPaginated("company.id", companyId, "created", DESC, start, limit);
     }
 
     public Buzz postBuzz(final BuzzRequestBody buzzRequestBody,

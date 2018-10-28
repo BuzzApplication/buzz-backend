@@ -18,6 +18,7 @@ import com.buzz.view.BuzzListView;
 import com.buzz.view.BuzzView;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -42,6 +43,8 @@ public class BuzzSource {
     @Path("/buzz")
     @Produces(MediaType.APPLICATION_JSON)
     public BuzzListView getBuzzByCompanyId(@QueryParam("companyId") final int companyId,
+                                           @QueryParam("start") @DefaultValue("0") final int start,
+                                           @QueryParam("limit") @DefaultValue("50") final int limit,
                                            @Context final SecurityContext securityContext) throws Exception {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
@@ -52,7 +55,7 @@ public class BuzzSource {
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
             validateUserWorksAtCompany(user.getId(), companyId, userEmailDao);
 
-            final List<Buzz> buzzList = buzzDao.getByCompanyId(companyId);
+            final List<Buzz> buzzList = buzzDao.getByCompanyId(companyId, start, limit);
             final List<Integer> buzzIds = buzzList.stream().map(Buzz::getId).collect(toList());
             final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());

@@ -19,8 +19,10 @@ public class CommentDao extends BaseDao<Comment> {
         super(sessionProvider, Comment.class);
     }
 
-    public List<Comment> getByBuzzId(final int buzzId) {
-        return getByFieldSorted("buzzId", buzzId, "created", DESC);
+    public List<Comment> getByBuzzId(final int buzzId,
+                                     final int start,
+                                     final int limit) {
+        return getByFieldSortedAndPaginated("buzzId", buzzId, "created", DESC, start, limit);
     }
 
     public Comment postComment(final CommentRequestBody commentRequestBody,
