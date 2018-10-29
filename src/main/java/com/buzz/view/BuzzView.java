@@ -30,7 +30,7 @@ public class BuzzView {
     }
 
     public String getAlias() {
-        return buzz.getAlias();
+        return buzz.getAlias() == null ? "" : buzz.getAlias();
     }
 
     public CompanyView getUserCompany() {
