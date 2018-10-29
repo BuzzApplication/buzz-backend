@@ -14,6 +14,10 @@ public class UserEmailView {
         this.userEmail = userEmail;
     }
 
+    public int getId() {
+        return userEmail.getId();
+    }
+
     public String getEmail() {
         return userEmail.getEmail();
     }
