@@ -31,7 +31,7 @@ public class Buzz {
     @Column
     private int companyId;
 
-    @Column(nullable = false)
+    @Column
     private String alias;
 
     @ManyToOne(cascade = CascadeType.ALL)
