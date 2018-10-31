@@ -6,7 +6,7 @@ import com.buzz.utils.TimeUtils;
 /**
  * Created by toshikijahja on 10/18/17.
  */
-public class CommentView {
+public class CommentView extends BaseView {
 
     private final Comment comment;
     private final boolean liked;

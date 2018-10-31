@@ -4,6 +4,7 @@ import com.buzz.auth.UserAuth;
 import com.buzz.dao.SessionProvider;
 import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
+import com.buzz.exception.BuzzException;
 import com.buzz.model.User;
 import com.buzz.model.UserEmail;
 import com.buzz.requestBody.UserRequestBody;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 import java.util.Optional;
 
+import static com.buzz.exception.BadRequest.ALIAS_EXIST;
 import static java.util.Objects.requireNonNull;
 
 @Path("/user")
@@ -45,9 +47,7 @@ public class UserSource {
             final UserDao userDao = new UserDao(sessionProvider);
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
             final List<UserEmail> userEmails = userEmailDao.getByUserId(user.getId());
-            for (UserEmail userEmail : userEmails) {
-                System.out.println("userEmail: " + userEmail.getCompany().getName());
-            }
+
             return new UserEmailListView(userEmails, user);
         }
     }
@@ -56,7 +56,7 @@ public class UserSource {
     @Path("/alias")
     @Produces(MediaType.APPLICATION_JSON)
     public UserView setAlias(final UserRequestBody userRequestBody,
-                             @Context final SecurityContext securityContext) throws Exception {
+                             @Context final SecurityContext securityContext) {
         requireNonNull(userRequestBody.getAlias());
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
@@ -64,7 +64,7 @@ public class UserSource {
             // check if alias has already being used
             final Optional<User> userOptional = userDao.getByAlias(userRequestBody.getAlias());
             if (userOptional.isPresent()) {
-                throw new Exception();
+                throw new BuzzException(ALIAS_EXIST);
             }
 
             sessionProvider.startTransaction();

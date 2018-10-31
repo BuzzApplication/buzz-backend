@@ -6,7 +6,7 @@ import com.buzz.model.Company;
 /**
  * Created by toshikijahja on 10/18/17.
  */
-public class CompanyView {
+public class CompanyView extends BaseView {
 
     private final Company company;
 

@@ -1,14 +1,15 @@
 package com.buzz.dao;
 
+import com.buzz.exception.BuzzException;
 import com.buzz.model.Authentication;
 import com.buzz.requestBody.AuthenticationRequestBody;
 import org.hibernate.query.Query;
 
-import javax.naming.AuthenticationException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
+import static com.buzz.exception.Unauthorized.UNAUTHORIZED;
 import static com.buzz.model.Authentication.Status.UNVERIFIED;
 import static com.buzz.model.Authentication.Status.VERIFIED;
 import static java.util.Objects.requireNonNull;
@@ -41,33 +42,33 @@ public class AuthenticationDao extends BaseDao<Authentication> {
         return String.format("%04d%n", rand.nextInt(10000));
     }
 
-    public Authentication authenticate(final String email, final String password) throws Exception {
+    public Authentication authenticate(final String email, final String password) {
         requireNonNull(email);
         requireNonNull(password);
         final List<Authentication> authenticationList = getByField("email", email);
         if (authenticationList.size() != 1) {
-            throw new AuthenticationException();
+            throw new BuzzException(UNAUTHORIZED);
         }
 
         final Authentication authentication = authenticationList.get(0);
         if (!Objects.equals(authentication.getPassword(), password)) {
-            throw new AuthenticationException();
+            throw new BuzzException(UNAUTHORIZED);
         }
 
         return authentication;
     }
 
-    public Authentication verify(final String email, final String verificationCode) throws Exception {
+    public Authentication verify(final String email, final String verificationCode) {
         requireNonNull(email);
         requireNonNull(verificationCode);
         final List<Authentication> authenticationList = getByField("email", email);
         if (authenticationList.size() != 1) {
-            throw new AuthenticationException();
+            throw new BuzzException(UNAUTHORIZED);
         }
 
         final Authentication authentication = authenticationList.get(0);
         if (!Objects.equals(authentication.getVerificationCode(), verificationCode)) {
-            throw new AuthenticationException();
+            throw new BuzzException(UNAUTHORIZED);
         }
 
         return authentication;

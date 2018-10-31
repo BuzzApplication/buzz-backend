@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by toshikijahja on 10/18/17.
  */
-public class CommentListView {
+public class CommentListView extends BaseView {
 
     private final List<CommentView> commentViews;
 
