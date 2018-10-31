@@ -5,11 +5,13 @@ import com.buzz.dao.CompanyEmailDao;
 import com.buzz.dao.SessionProvider;
 import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
+import com.buzz.exception.BuzzException;
 import com.buzz.model.Authentication;
 import com.buzz.model.CompanyEmail;
 import com.buzz.model.UserEmail;
 import com.buzz.requestBody.AuthenticationRequestBody;
 import com.buzz.requestBody.AuthenticationVerificationRequestBody;
+import com.buzz.view.TokenView;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -21,6 +23,9 @@ import java.util.Optional;
 
 import static com.buzz.auth.JWTUtil.createJWT;
 import static com.buzz.auth.JWTUtil.getSubject;
+import static com.buzz.exception.BadRequest.COMPANY_EMAIL_NOT_EXIST;
+import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_EXIST;
+import static com.buzz.exception.GenericError.FOUND;
 import static com.buzz.model.Authentication.Status.UNVERIFIED;
 import static java.util.Objects.requireNonNull;
 
@@ -43,13 +48,13 @@ public class AuthenticationSource {
             // check if email is already being taken
             final Optional<UserEmail> userEmail = userEmailDao.getByEmail(authenticationRequestBody.getEmail());
             if (userEmail.isPresent()) {
-                throw new Exception();
+                throw new BuzzException(USER_EMAIL_NOT_EXIST);
             }
 
             // check if email is whitelisted
             final Optional<CompanyEmail> companyEmail = companyEmailDao.getByEmail(authenticationRequestBody.getEmail());
             if (!companyEmail.isPresent()) {
-                throw new Exception();
+                throw new BuzzException(COMPANY_EMAIL_NOT_EXIST);
             }
 
             final Authentication authentication = authenticationDao.createAuthentication(authenticationRequestBody);
@@ -63,7 +68,7 @@ public class AuthenticationSource {
     @Path("/authenticate")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response authenticateUser(final AuthenticationRequestBody authenticationRequestBody) throws Exception {
+    public TokenView authenticateUser(final AuthenticationRequestBody authenticationRequestBody) throws Exception {
         requireNonNull(authenticationRequestBody.getEmail());
         requireNonNull(authenticationRequestBody.getPassword());
 
@@ -74,11 +79,11 @@ public class AuthenticationSource {
                     authenticationRequestBody.getPassword());
 
             if (authentication.getStatus() == UNVERIFIED) {
-                return Response.ok().build();
+                throw new BuzzException(FOUND);
             }
 
             final String token = issueToken(authentication.getGuid(), authenticationRequestBody.getEmail());
-            return Response.ok(token).build();
+            return new TokenView(token);
         }
 
     }
@@ -87,7 +92,7 @@ public class AuthenticationSource {
     @Path("/verify")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response verifyUser(final AuthenticationVerificationRequestBody authenticationVerificationRequestBody) throws Exception {
+    public TokenView verifyUser(final AuthenticationVerificationRequestBody authenticationVerificationRequestBody) throws Exception {
         requireNonNull(authenticationVerificationRequestBody.getEmail());
         requireNonNull(authenticationVerificationRequestBody.getPassword());
         requireNonNull(authenticationVerificationRequestBody.getVerificationCode());
@@ -108,7 +113,7 @@ public class AuthenticationSource {
             userDao.createUser(authentication.getGuid());
             sessionProvider.commitTransaction();
             final String token = issueToken(authentication.getGuid(), authenticationVerificationRequestBody.getEmail());
-            return Response.ok(token).build();
+            return new TokenView(token);
         }
     }
 

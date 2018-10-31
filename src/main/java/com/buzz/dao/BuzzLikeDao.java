@@ -1,11 +1,13 @@
 package com.buzz.dao;
 
+import com.buzz.exception.BuzzException;
 import com.buzz.model.BuzzLike;
 import org.hibernate.query.Query;
 
 import java.util.List;
 import java.util.Optional;
 
+import static com.buzz.exception.BadRequest.BUZZ_LIKE_NOT_EXIST;
 import static com.buzz.utils.QueryUtils.listObjectToSqlQueryInString;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -54,11 +56,11 @@ public class BuzzLikeDao extends BaseDao<BuzzLike> {
         getSessionProvider().commitTransaction();
     }
 
-    public void dislikeBuzz(final int userId, final int buzzId) throws Exception {
+    public void dislikeBuzz(final int userId, final int buzzId) {
         getSessionProvider().startTransaction();
         final Optional<BuzzLike> buzzLike = getByUserIdAndBuzzId(userId, buzzId);
         if (!buzzLike.isPresent()) {
-            throw new Exception();
+            throw new BuzzException(BUZZ_LIKE_NOT_EXIST);
         }
         getSessionProvider().getSession().delete(buzzLike.get());
         getSessionProvider().commitTransaction();

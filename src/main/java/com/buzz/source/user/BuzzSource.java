@@ -7,6 +7,7 @@ import com.buzz.dao.CompanyDao;
 import com.buzz.dao.SessionProvider;
 import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
+import com.buzz.exception.BuzzException;
 import com.buzz.model.Buzz;
 import com.buzz.model.BuzzLike;
 import com.buzz.model.Company;
@@ -32,12 +33,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.buzz.exception.BadRequest.BUZZ_NOT_EXIST;
+import static com.buzz.exception.BadRequest.COMPANY_NOT_EXIST;
+import static com.buzz.exception.BadRequest.TEXT_CANNOT_BE_EMPTY;
+import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_EXIST;
+import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_MATCH;
+import static com.buzz.exception.BadRequest.USER_NOT_IN_COMPANY;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 @Path("/user")
 @UserAuth
@@ -50,7 +57,7 @@ public class BuzzSource {
             @QueryParam("companyIds") final List<Integer> companyIds,
             @QueryParam("start") @DefaultValue("0") final int start,
             @QueryParam("limit") @DefaultValue("50") final int limit,
-            @Context final SecurityContext securityContext) throws Exception {
+            @Context final SecurityContext securityContext) {
         if (companyIds.isEmpty()) {
             return emptyList();
         }
@@ -86,7 +93,7 @@ public class BuzzSource {
      * @param userEmailDao
      * @throws Exception
      */
-    public static void validateUserWorksAtCompany(final int userId, final int companyId, final UserEmailDao userEmailDao) throws Exception {
+    public static void validateUserWorksAtCompany(final int userId, final int companyId, final UserEmailDao userEmailDao) {
         validateUserWorksAtCompany(userId, singletonList(companyId), userEmailDao);
     }
 
@@ -97,10 +104,10 @@ public class BuzzSource {
      * @param userEmailDao
      * @throws Exception
      */
-    public static void validateUserWorksAtCompany(final int userId, final List<Integer> companyIds, final UserEmailDao userEmailDao) throws Exception {
+    public static void validateUserWorksAtCompany(final int userId, final List<Integer> companyIds, final UserEmailDao userEmailDao) {
         final List<UserEmail> userEmails = userEmailDao.getByUserIdAndCompanyIds(userId, companyIds);
         if (userEmails.size() != companyIds.size()) {
-            throw new Exception();
+            throw new BuzzException(USER_NOT_IN_COMPANY);
         }
     }
 
@@ -109,7 +116,11 @@ public class BuzzSource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public BuzzView postBuzz(final BuzzRequestBody buzzRequestBody,
-                             @Context final SecurityContext securityContext) throws Exception {
+                             @Context final SecurityContext securityContext) {
+        if(isEmpty(buzzRequestBody.getText())) {
+            throw new BuzzException(TEXT_CANNOT_BE_EMPTY);
+        }
+
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
@@ -120,19 +131,18 @@ public class BuzzSource {
             final Optional<Company> company = companyDao.getByIdOptional(buzzRequestBody.getCompanyId());
 
             if (!company.isPresent()) {
-                throw new Exception();
+                throw new BuzzException(COMPANY_NOT_EXIST);
             }
 
             final Optional<UserEmail> userEmail = userEmailDao.getByIdOptional(buzzRequestBody.getUserEmailId());
             if (!userEmail.isPresent()) {
-                throw new Exception();
+                throw new BuzzException(USER_EMAIL_NOT_EXIST);
             }
 
             if (userEmail.get().getUser().getId() != user.getId()) {
-                throw new Exception();
+                throw new BuzzException(USER_EMAIL_NOT_MATCH);
             }
 
-            requireNonNull(buzzRequestBody.getText());
             validateUserWorksAtCompany(user.getId(), company.get().getId(), userEmailDao);
 
             final Buzz buzz = buzzDao.postBuzz(buzzRequestBody, userEmail.get(), company.get());
@@ -155,7 +165,7 @@ public class BuzzSource {
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
             final Optional<Buzz> buzz = buzzDao.getByIdOptional(buzzLikeRequestBody.getBuzzId());
             if (!buzz.isPresent()) {
-                throw new Exception();
+                throw new BuzzException(BUZZ_NOT_EXIST);
             }
 
             // already liked/unliked

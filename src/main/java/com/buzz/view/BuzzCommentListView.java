@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by toshikijahja on 10/18/17.
  */
-public class BuzzCommentListView {
+public class BuzzCommentListView extends BaseView {
 
     private final BuzzView buzzView;
     private final List<CommentView> commentViews;

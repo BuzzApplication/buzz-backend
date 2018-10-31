@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * Created by toshikijahja on 10/18/17.
  */
-public class UserEmailListView {
+public class UserEmailListView extends BaseView {
 
     private final List<UserEmailView> userEmailViews;
     private final UserView userView;
