@@ -10,11 +10,14 @@ public class BuzzView {
 
     private final Buzz buzz;
     private final boolean liked;
+    private final boolean favorited;
 
     public BuzzView(final Buzz buzz,
-                    final boolean liked) {
+                    final boolean liked,
+                    final boolean favorited) {
         this.buzz = buzz;
         this.liked = liked;
+        this.favorited = favorited;
     }
 
     public int getId() {
@@ -51,6 +54,10 @@ public class BuzzView {
 
     public boolean isLiked() {
         return liked;
+    }
+
+    public boolean isFavorited() {
+        return favorited;
     }
 
     public TimeView getTimePassed() {

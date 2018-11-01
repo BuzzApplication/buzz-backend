@@ -2,6 +2,7 @@ package com.buzz.source.user;
 
 import com.buzz.auth.UserAuth;
 import com.buzz.dao.BuzzDao;
+import com.buzz.dao.BuzzFavoriteDao;
 import com.buzz.dao.BuzzLikeDao;
 import com.buzz.dao.CompanyDao;
 import com.buzz.dao.SessionProvider;
@@ -9,10 +10,12 @@ import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Buzz;
+import com.buzz.model.BuzzFavorite;
 import com.buzz.model.BuzzLike;
 import com.buzz.model.Company;
 import com.buzz.model.User;
 import com.buzz.model.UserEmail;
+import com.buzz.requestBody.BuzzFavoriteRequestBody;
 import com.buzz.requestBody.BuzzLikeRequestBody;
 import com.buzz.requestBody.BuzzRequestBody;
 import com.buzz.view.BuzzListWithCompanyView;
@@ -64,6 +67,7 @@ public class BuzzSource {
             final UserDao userDao = new UserDao(sessionProvider);
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
             final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
@@ -73,9 +77,11 @@ public class BuzzSource {
             final List<Integer> buzzIds = buzzList.stream().map(Buzz::getId).collect(toList());
             final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
+            final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Set<Integer> buzzFavoriteIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toSet());
 
             final List<BuzzView> buzzViews = buzzList.stream()
-                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId())))
+                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
                     .collect(toList());
             final Map<Integer, List<BuzzView>> buzzListByCompanyId = buzzViews.stream().collect(groupingBy(BuzzView::getCompanyId));
 
@@ -95,6 +101,7 @@ public class BuzzSource {
             final UserDao userDao = new UserDao(sessionProvider);
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
 
@@ -102,9 +109,11 @@ public class BuzzSource {
             final List<Integer> buzzIds = buzzList.stream().map(Buzz::getId).collect(toList());
             final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
+            final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Set<Integer> buzzFavoriteIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toSet());
 
             final List<BuzzView> buzzViews = buzzList.stream()
-                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId())))
+                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
                     .collect(toList());
 
             return buzzViews;
@@ -172,7 +181,7 @@ public class BuzzSource {
 
             final Buzz buzz = buzzDao.postBuzz(buzzRequestBody, userEmail.get(), company.get());
 
-            return new BuzzView(buzz, false);
+            return new BuzzView(buzz, false, false);
         }
     }
 
@@ -181,11 +190,12 @@ public class BuzzSource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public BuzzView likeBuzz(final BuzzLikeRequestBody buzzLikeRequestBody,
-                             @Context final SecurityContext securityContext) throws Exception {
+                             @Context final SecurityContext securityContext) {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
             final Optional<Buzz> buzz = buzzDao.getByIdOptional(buzzLikeRequestBody.getBuzzId());
@@ -193,10 +203,12 @@ public class BuzzSource {
                 throw new BuzzException(BUZZ_NOT_EXIST);
             }
 
+            final Optional<BuzzFavorite> buzzFavorite = buzzFavoriteDao.getByUserIdAndBuzzId(user.getId(), buzzLikeRequestBody.getBuzzId());
+
             // already liked/unliked
             final Optional<BuzzLike> buzzLiked = buzzLikeDao.getByUserIdAndBuzzId(user.getId(), buzzLikeRequestBody.getBuzzId());
             if (buzzLikeRequestBody.isLiked() == buzzLiked.isPresent()) {
-                return new BuzzView(buzz.get(), buzzLiked.isPresent());
+                return new BuzzView(buzz.get(), buzzLiked.isPresent(), buzzFavorite.isPresent());
             }
 
             sessionProvider.startTransaction();
@@ -209,7 +221,47 @@ public class BuzzSource {
             }
             sessionProvider.commitTransaction();
 
-            return new BuzzView(buzz.get(), buzzLikeRequestBody.isLiked());
+            return new BuzzView(buzz.get(), buzzLikeRequestBody.isLiked(), buzzFavorite.isPresent());
+        }
+    }
+
+    @POST
+    @Path("/buzz/favorite")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public BuzzView favoriteBuzz(final BuzzFavoriteRequestBody buzzFavoriteRequestBody,
+                                 @Context final SecurityContext securityContext) {
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final UserDao userDao = new UserDao(sessionProvider);
+            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+            final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+
+            final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
+            final Optional<Buzz> buzz = buzzDao.getByIdOptional(buzzFavoriteRequestBody.getBuzzId());
+            if (!buzz.isPresent()) {
+                throw new BuzzException(BUZZ_NOT_EXIST);
+            }
+
+            final Optional<BuzzLike> buzzLike = buzzLikeDao.getByUserIdAndBuzzId(user.getId(), buzzFavoriteRequestBody.getBuzzId());
+
+            // already favorite/unfavorite
+            final Optional<BuzzFavorite> buzzFavorited = buzzFavoriteDao.getByUserIdAndBuzzId(user.getId(), buzzFavoriteRequestBody.getBuzzId());
+            if (buzzFavoriteRequestBody.isFavorited() == buzzFavorited.isPresent()) {
+                return new BuzzView(buzz.get(), buzzLike.isPresent(), buzzFavorited.isPresent());
+            }
+
+            sessionProvider.startTransaction();
+            if (buzzFavoriteRequestBody.isFavorited()) {
+                buzzFavoriteDao.favoriteBuzz(user.getId(), buzzFavoriteRequestBody.getBuzzId());
+                buzzDao.increaseLikesCount(buzz.get().getId());
+            } else {
+                buzzFavoriteDao.unfavoriteBuzz(user.getId(), buzzFavoriteRequestBody.getBuzzId());
+                buzzDao.decreaseLikesCount(buzz.get().getId());
+            }
+            sessionProvider.commitTransaction();
+
+            return new BuzzView(buzz.get(), buzzLike.isPresent(), buzzFavoriteRequestBody.isFavorited());
         }
     }
 
