@@ -95,8 +95,8 @@ public class BuzzSource {
     @Path("/buzz/posted")
     @Produces(MediaType.APPLICATION_JSON)
     public List<BuzzView> getPostedBuzz(@QueryParam("start") @DefaultValue("0") final int start,
-                                                       @QueryParam("limit") @DefaultValue("50") final int limit,
-                                                       @Context final SecurityContext securityContext) {
+                                        @QueryParam("limit") @DefaultValue("50") final int limit,
+                                        @Context final SecurityContext securityContext) {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
