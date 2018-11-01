@@ -14,9 +14,11 @@ public enum BadRequest implements ResponseError {
     EMPTY_REQUEST_BODY("Request body cannot be empty"),
     INVALID_EMAIL_FORMAT("Email format is invalid"),
     TEXT_CANNOT_BE_EMPTY("Text cannot be empty"),
+    USER_ALREADY_EXIST("User already exist"),
     USER_EMAIL_NOT_EXIST("User email does not work in the company"),
     USER_EMAIL_NOT_MATCH("User email does not match with current logged in user"),
-    USER_NOT_IN_COMPANY("User does not work in the company");
+    USER_NOT_IN_COMPANY("User does not work in the company"),
+    USER_NOT_VERIFIED("User is not verified");
 
     private final String errorDescription;
 

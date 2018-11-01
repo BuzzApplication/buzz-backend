@@ -3,7 +3,6 @@ package com.buzz.source;
 import com.buzz.dao.AuthenticationDao;
 import com.buzz.dao.CompanyEmailDao;
 import com.buzz.dao.SessionProvider;
-import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
 import com.buzz.email.EmailClient;
 import com.buzz.exception.BuzzException;
@@ -103,7 +102,6 @@ public class AuthenticationSource {
 
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final AuthenticationDao authenticationDao = new AuthenticationDao(sessionProvider);
-            final UserDao userDao = new UserDao(sessionProvider);
             final Authentication authentication = authenticationDao.authenticate(
                     authenticationVerificationRequestBody.getEmail(),
                     authenticationVerificationRequestBody.getPassword());
@@ -114,7 +112,6 @@ public class AuthenticationSource {
 
             sessionProvider.startTransaction();
             authenticationDao.setVerified(authentication.getGuid());
-            userDao.createUser(authentication.getGuid());
             sessionProvider.commitTransaction();
             final String token = issueToken(authentication.getGuid(), authenticationVerificationRequestBody.getEmail());
             return new TokenView(token);

@@ -1,5 +1,7 @@
 package com.buzz.dao;
 
+import com.buzz.model.Company;
+import com.buzz.model.User;
 import com.buzz.model.UserEmail;
 import org.hibernate.query.Query;
 
@@ -19,6 +21,21 @@ public class UserEmailDao extends BaseDao<UserEmail> {
 
     public UserEmailDao(final SessionProvider sessionProvider) {
         super(sessionProvider, UserEmail.class);
+    }
+
+    public UserEmail createUserEmail(final String email, final Company company, final User user) {
+        requireNonNull(email);
+        requireNonNull(company);
+        requireNonNull(user);
+        getSessionProvider().startTransaction();
+        final UserEmail userEmail = new UserEmail.Builder()
+                .email(email)
+                .company(company)
+                .user(user)
+                .build();
+        getSessionProvider().getSession().persist(userEmail);
+        getSessionProvider().commitTransaction();
+        return userEmail;
     }
 
     public List<UserEmail> getByUserId(final int userId) {
