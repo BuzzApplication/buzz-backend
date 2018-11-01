@@ -5,12 +5,14 @@ import com.buzz.dao.CompanyEmailDao;
 import com.buzz.dao.SessionProvider;
 import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
+import com.buzz.email.EmailClient;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Authentication;
 import com.buzz.model.CompanyEmail;
 import com.buzz.model.UserEmail;
 import com.buzz.requestBody.AuthenticationRequestBody;
 import com.buzz.requestBody.AuthenticationVerificationRequestBody;
+import com.buzz.view.BaseView;
 import com.buzz.view.TokenView;
 
 import javax.ws.rs.Consumes;
@@ -18,7 +20,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 import static com.buzz.auth.JWTUtil.createJWT;
@@ -35,9 +36,11 @@ import static java.util.Objects.requireNonNull;
 @Path("/authentication")
 public class AuthenticationSource {
 
+    private final EmailClient emailClient = new EmailClient();
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createAuthentication(final AuthenticationRequestBody authenticationRequestBody) throws Exception {
+    public BaseView createAuthentication(final AuthenticationRequestBody authenticationRequestBody) throws Exception {
         requireNonNull(authenticationRequestBody.getEmail());
         requireNonNull(authenticationRequestBody.getPassword());
         try (final SessionProvider sessionProvider = new SessionProvider()) {
@@ -59,9 +62,10 @@ public class AuthenticationSource {
 
             final Authentication authentication = authenticationDao.createAuthentication(authenticationRequestBody);
 
-            // TODO: send email with verification
+            // send verification code email
+            emailClient.sendEmail(authentication.getEmail(), authentication.getVerificationCode());
         }
-        return Response.ok().build();
+        return new BaseView();
     }
 
     @POST
