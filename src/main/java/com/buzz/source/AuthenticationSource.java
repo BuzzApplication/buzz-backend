@@ -63,7 +63,7 @@ public class AuthenticationSource {
             final Authentication authentication = authenticationDao.createAuthentication(authenticationRequestBody);
 
             // send verification code email
-            emailClient.sendEmail(authentication.getEmail(), authentication.getVerificationCode());
+//            emailClient.sendEmail(authentication.getEmail(), authentication.getVerificationCode());
         }
         return new BaseView();
     }
