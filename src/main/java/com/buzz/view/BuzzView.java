@@ -37,6 +37,10 @@ public class BuzzView {
         return new CompanyView(buzz.getUserEmail().getCompany());
     }
 
+    public int getUserEmailId() {
+        return buzz.getUserEmail().getId();
+    }
+
     public int getLikesCount() {
         return buzz.getLikesCount();
     }

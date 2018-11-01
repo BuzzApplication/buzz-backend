@@ -115,7 +115,7 @@ public class UserEmail {
             return this;
         }
 
-        public Builder User(final User user) {
+        public Builder user(final User user) {
             this.user = user;
             return this;
         }

@@ -7,6 +7,7 @@ import org.hibernate.query.Query;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 import static com.buzz.exception.Unauthorized.UNAUTHORIZED;
@@ -21,6 +22,11 @@ public class AuthenticationDao extends BaseDao<Authentication> {
 
     public AuthenticationDao(final SessionProvider sessionProvider) {
         super(sessionProvider, Authentication.class);
+    }
+
+    public Optional<Authentication> getByGuid(final String guid) {
+        requireNonNull(guid);
+        return getFirst(getByField("guid", guid));
     }
 
     public Authentication createAuthentication(final AuthenticationRequestBody authenticationRequestBody) {

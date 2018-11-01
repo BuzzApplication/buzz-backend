@@ -11,4 +11,13 @@ public class CompanyDao extends BaseDao<Company> {
         super(sessionProvider, Company.class);
     }
 
+    /**
+     *
+     * @return Everyone. Will always have id=1
+     */
+    public Company getEveryone() {
+        return getById(1);
+    }
+
+
 }
