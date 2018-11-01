@@ -2,6 +2,7 @@ package com.buzz.source.user;
 
 import com.buzz.auth.UserAuth;
 import com.buzz.dao.BuzzDao;
+import com.buzz.dao.BuzzFavoriteDao;
 import com.buzz.dao.BuzzLikeDao;
 import com.buzz.dao.CommentDao;
 import com.buzz.dao.CommentLikeDao;
@@ -10,6 +11,7 @@ import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Buzz;
+import com.buzz.model.BuzzFavorite;
 import com.buzz.model.BuzzLike;
 import com.buzz.model.Comment;
 import com.buzz.model.CommentLike;
@@ -60,6 +62,7 @@ public class CommentSource {
             final UserDao userDao = new UserDao(sessionProvider);
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
             final CommentDao commentDao = new CommentDao(sessionProvider);
             final CommentLikeDao commentLikeDao = new CommentLikeDao(sessionProvider);
             final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
@@ -81,8 +84,9 @@ public class CommentSource {
                     .collect(toList());
 
             final Optional<BuzzLike> buzzLike = buzzLikeDao.getByUserIdAndBuzzId(user.getId(), buzz.get().getId());
+            final Optional<BuzzFavorite> buzzFavorite = buzzFavoriteDao.getByUserIdAndBuzzId(user.getId(), buzz.get().getId());
 
-            final BuzzView buzzView = new BuzzView(buzz.get(), buzzLike.isPresent());
+            final BuzzView buzzView = new BuzzView(buzz.get(), buzzLike.isPresent(), buzzFavorite.isPresent());
             return new BuzzCommentListView(buzzView, commentViews);
         }
     }

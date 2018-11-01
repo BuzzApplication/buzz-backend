@@ -71,6 +71,14 @@ CREATE TABLE `BuzzLike` (
   PRIMARY KEY (`userId`, `buzzId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `BuzzFavorite` (
+  `userId` int(11) unsigned NOT NULL,
+  `buzzId` int(11) unsigned NOT NULL,
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`userId`, `buzzId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `Comment` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `buzzId` int(11) unsigned NOT NULL,

@@ -5,6 +5,7 @@ package com.buzz.exception;
  */
 public enum BadRequest implements ResponseError {
     ALIAS_EXIST("Alias already exists"),
+    BUZZ_FAVORITE_NOT_EXIST("Buzz favorite does not exist"),
     BUZZ_NOT_EXIST("Buzz does not exist"),
     BUZZ_LIKE_NOT_EXIST("Buzz like does not exist"),
     COMMENT_NOT_EXIST("Comment does not exist"),
