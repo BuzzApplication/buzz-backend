@@ -117,11 +117,17 @@ public class UserSource {
                 throw new BuzzException(ALIAS_EXIST);
             }
 
-            sessionProvider.startTransaction();
-            userDao.setAlias(userRequestBody.getAlias());
-            sessionProvider.commitTransaction();
             final Optional<User> user = userDao.getByGuid(securityContext.getUserPrincipal().getName());
-            return new UserView(user.get());
+
+            sessionProvider.startTransaction();
+            userDao.setAlias(userRequestBody.getAlias(), user.get().getId());
+            sessionProvider.commitTransaction();
+        }
+
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final UserDao userDao = new UserDao(sessionProvider);
+            final Optional<User> updatedUser = userDao.getByGuid(securityContext.getUserPrincipal().getName());
+            return new UserView(updatedUser.get());
         }
     }
 }

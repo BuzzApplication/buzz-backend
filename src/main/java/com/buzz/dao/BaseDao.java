@@ -83,6 +83,9 @@ public class BaseDao<T> {
                                        final List<Integer> dataList,
                                        final String sortField,
                                        final Sort sort) {
+        if (dataList.isEmpty()) {
+            return emptyList();
+        }
         requireNonNull(field);
         requireNonNull(sortField);
         requireNonNull(sort);
@@ -116,6 +119,9 @@ public class BaseDao<T> {
                                                    final Sort sort,
                                                    final int start,
                                                    final int limit) {
+        if (dataList.isEmpty()) {
+            return emptyList();
+        }
         requireNonNull(field);
         requireNonNull(sortField);
         requireNonNull(sort);

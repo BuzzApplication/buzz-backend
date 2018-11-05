@@ -53,6 +53,9 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 @UserAuth
 public class BuzzSource {
 
+    private static final int TRENDING_BUZZ_MAX_DAYS = 14;
+    private static final int TRENDING_BUZZ_LIMIT = 10;
+
     @GET
     @Path("/buzz")
     @Produces(MediaType.APPLICATION_JSON)
@@ -74,6 +77,9 @@ public class BuzzSource {
             validateUserWorksAtCompany(user.getId(), companyIds, userEmailDao);
 
             final List<Buzz> buzzList = buzzDao.getByCompanyIds(companyIds, start, limit);
+            if (buzzList.isEmpty()) {
+                return emptyList();
+            }
             final List<Integer> buzzIds = buzzList.stream().map(Buzz::getId).collect(toList());
             final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
@@ -92,6 +98,36 @@ public class BuzzSource {
     }
 
     @GET
+    @Path("/buzz/trending")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<BuzzView> getTrendingBuzz(@Context final SecurityContext securityContext) {
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final UserDao userDao = new UserDao(sessionProvider);
+            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
+            final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+
+            final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
+
+            final List<Buzz> buzzList = buzzDao.getTrending(TRENDING_BUZZ_MAX_DAYS, TRENDING_BUZZ_LIMIT);
+            if (buzzList.isEmpty()) {
+                return emptyList();
+            }
+            final List<Integer> buzzIds = buzzList.stream().map(Buzz::getId).collect(toList());
+            final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
+            final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Set<Integer> buzzFavoriteIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toSet());
+
+            final List<BuzzView> buzzViews = buzzList.stream()
+                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
+                    .collect(toList());
+
+            return buzzViews;
+        }
+    }
+
+    @GET
     @Path("/buzz/posted")
     @Produces(MediaType.APPLICATION_JSON)
     public List<BuzzView> getPostedBuzz(@QueryParam("start") @DefaultValue("0") final int start,
@@ -106,6 +142,9 @@ public class BuzzSource {
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
 
             final List<Buzz> buzzList = buzzDao.getByUserId(user.getId(), start, limit);
+            if (buzzList.isEmpty()) {
+                return emptyList();
+            }
             final List<Integer> buzzIds = buzzList.stream().map(Buzz::getId).collect(toList());
             final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
@@ -114,6 +153,38 @@ public class BuzzSource {
 
             final List<BuzzView> buzzViews = buzzList.stream()
                     .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
+                    .collect(toList());
+
+            return buzzViews;
+        }
+    }
+
+    @GET
+    @Path("/buzz/favorite")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<BuzzView> getFavoriteBuzz(@QueryParam("start") @DefaultValue("0") final int start,
+                                          @QueryParam("limit") @DefaultValue("50") final int limit,
+                                          @Context final SecurityContext securityContext) {
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final UserDao userDao = new UserDao(sessionProvider);
+            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
+            final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+
+            final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
+
+            final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserId(user.getId());
+            if (buzzFavorites.isEmpty()) {
+                return emptyList();
+            }
+            final List<Integer> buzzIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toList());
+
+            final List<Buzz> buzzList = buzzDao.getByIds(buzzIds, start, limit);
+            final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
+
+            final List<BuzzView> buzzViews = buzzList.stream()
+                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), true))
                     .collect(toList());
 
             return buzzViews;
@@ -219,7 +290,9 @@ public class BuzzSource {
                 buzzLikeDao.dislikeBuzz(user.getId(), buzzLikeRequestBody.getBuzzId());
                 buzzDao.decreaseLikesCount(buzz.get().getId());
             }
+
             sessionProvider.commitTransaction();
+            sessionProvider.getSession().refresh(buzz.get());
 
             return new BuzzView(buzz.get(), buzzLikeRequestBody.isLiked(), buzzFavorite.isPresent());
         }
@@ -259,7 +332,9 @@ public class BuzzSource {
                 buzzFavoriteDao.unfavoriteBuzz(user.getId(), buzzFavoriteRequestBody.getBuzzId());
                 buzzDao.decreaseLikesCount(buzz.get().getId());
             }
+
             sessionProvider.commitTransaction();
+            sessionProvider.getSession().refresh(buzz.get());
 
             return new BuzzView(buzz.get(), buzzLike.isPresent(), buzzFavoriteRequestBody.isFavorited());
         }
