@@ -6,9 +6,11 @@ import com.buzz.model.UserEmail;
 import com.buzz.requestBody.BuzzRequestBody;
 import org.hibernate.query.Query;
 
+import java.time.Instant;
 import java.util.List;
 
 import static com.buzz.dao.BaseDao.Sort.DESC;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -24,6 +26,21 @@ public class BuzzDao extends BaseDao<Buzz> {
                                   final int start,
                                   final int limit) {
         return getByFieldSortedAndPaginated("userEmail.user.id", userId, "created", DESC, start, limit);
+    }
+
+    public List<Buzz> getByIds(final List<Integer> buzzIds,
+                               final int start,
+                               final int limit) {
+        return getByFieldSortedAndPaginated("id", buzzIds, "created", DESC, start, limit);
+    }
+
+    public List<Buzz> getTrending(final int maxDays,
+                                  final int limit) {
+        final Query query = getSessionProvider().getSession().createQuery(
+                "FROM " + clazz.getName() + " WHERE created >= :maxDays ORDER BY commentsCount, likesCount DESC");
+        query.setParameter("maxDays", Instant.now().minus(maxDays, DAYS));
+        query.setMaxResults(limit);
+        return query.list();
     }
 
     public List<Buzz> getByCompanyIds(final List<Integer> companyIds,

@@ -163,6 +163,7 @@ public class CommentSource {
                 commentDao.decreaseLikesCount(comment.get().getId());
             }
             sessionProvider.commitTransaction();
+            sessionProvider.getSession().refresh(comment.get());
 
             return new CommentView(comment.get(), commentLikeRequestBody.isLiked());
         }

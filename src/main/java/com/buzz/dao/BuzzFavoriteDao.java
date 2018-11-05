@@ -39,6 +39,14 @@ public class BuzzFavoriteDao extends BaseDao<BuzzFavorite> {
         return query.list();
     }
 
+    @SuppressWarnings("unchecked")
+    public List<BuzzFavorite> getByUserId(final int userId) {
+        final Query query = getSessionProvider().getSession().createQuery(
+                "FROM " + clazz.getName() + " WHERE userId = :userId");
+        query.setParameter("userId", userId);
+        return query.list();
+    }
+
     public void favoriteBuzz(final int userId, final int buzzId) {
         favoriteBuzz(userId, singletonList(buzzId));
     }
