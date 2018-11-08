@@ -101,6 +101,37 @@ CREATE TABLE `CommentLike` (
   PRIMARY KEY (`userId`, `commentId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `ReportCategory` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `category` varchar(512) NOT NULL,
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `Report` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `userId` int(11) unsigned NOT NULL,
+  `type` enum('BUZZ', 'COMMENT') CHARACTER SET utf8 NOT NULL DEFAULT 'BUZZ',
+  `itemId` int(11) unsigned NOT NULL,
+  `reportCategoryId` int(11) unsigned NOT NULL,
+  `comments` text DEFAULT NULL,
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `reportCategoryId` (`reportCategoryId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `ReportCategory` (`category`)
+VALUES
+	('Bullying'),
+	('Inappropriate Content'),
+	('Discrimination'),
+	('Sexual Harassment'),
+	('Impersonation'),
+	('Spam'),
+	('Other');
+
 INSERT INTO `Authentication` (`guid`, `email`, `password`, `created`, `lastModified`)
 VALUES
 	('f771f429-d987-4ce4-9087-1468f0a64070', 'johnDoe@buzz.com', 'johnDoe', '2018-10-24 06:31:19', '2018-10-24 06:31:19');
@@ -121,3 +152,4 @@ VALUES
 INSERT INTO `CompanyEmail` (`email`, `companyId`, `created`, `lastModified`)
 VALUES
 	('@buzz.com', 1, '2018-10-24 05:59:52', '2018-10-24 05:59:57');
+

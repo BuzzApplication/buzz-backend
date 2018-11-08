@@ -28,5 +28,7 @@
         <mapping class="com.buzz.model.BuzzFavorite"/>
         <mapping class="com.buzz.model.Comment"/>
         <mapping class="com.buzz.model.CommentLike"/>
+        <mapping class="com.buzz.model.ReportCategory"/>
+        <mapping class="com.buzz.model.Report"/>
     </session-factory>
 </hibernate-configuration>

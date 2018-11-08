@@ -36,6 +36,12 @@ public class BaseDao<T> {
     }
 
     @SuppressWarnings("unchecked")
+    public List<T> getAll() {
+        final Query query = getSessionProvider().getSession().createQuery("FROM " + clazz.getName());
+        return query.list();
+    }
+
+    @SuppressWarnings("unchecked")
     public T getById(final int id) {
         return (T) getSessionProvider().getSession().load(clazz, id);
     }
