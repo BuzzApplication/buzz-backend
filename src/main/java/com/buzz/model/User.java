@@ -31,7 +31,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Status status = ACTIVE;
 
-
     @Column
     @CreationTimestamp
     private Instant created;
