@@ -10,7 +10,10 @@ import java.time.Instant;
 import java.util.List;
 
 import static com.buzz.dao.BaseDao.Sort.DESC;
+import static com.buzz.utils.QueryUtils.listObjectToSqlQueryInString;
+import static java.lang.String.join;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -34,6 +37,7 @@ public class BuzzDao extends BaseDao<Buzz> {
         return getByFieldSortedAndPaginated("id", buzzIds, "created", DESC, start, limit);
     }
 
+    @SuppressWarnings("unchecked")
     public List<Buzz> getTrending(final int maxDays,
                                   final int limit) {
         final Query query = getSessionProvider().getSession().createQuery(
@@ -86,5 +90,28 @@ public class BuzzDao extends BaseDao<Buzz> {
                 "UPDATE " + clazz.getName() + " SET likesCount = likesCount - 1 WHERE id = :buzzId");
         query.setParameter("buzzId", buzzId);
         query.executeUpdate();
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Buzz> search(final String text,
+                             final List<Integer> companyIds,
+                             final int start,
+                             final int limit) {
+        final String queryString = "SELECT b FROM Buzz b " +
+                "INNER JOIN Company c ON c.id = b.companyId " +
+                "WHERE (b.text LIKE :searchedText " +
+                "OR c.name LIKE :searchedText) " +
+                "AND c.id IN " + listObjectToSqlQueryInString(companyIds) + " " +
+                "ORDER BY b.commentsCount, b.likesCount DESC";
+        final Query query = getSessionProvider().getSession().createQuery(queryString);
+        query.setParameter("searchedText", buildSearchedString(text));
+        query.setFirstResult(start);
+        query.setMaxResults(limit);
+        return query.list();
+    }
+
+    private String buildSearchedString(final String text) {
+        final List<String> textList = asList(text.split("\\s+"));
+        return "%" + join("%", textList) + "%";
     }
 }
