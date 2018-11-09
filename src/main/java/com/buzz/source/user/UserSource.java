@@ -26,6 +26,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.buzz.exception.BadRequest.ALIAS_EXIST;
@@ -110,14 +111,16 @@ public class UserSource {
         requireNonNull(userRequestBody.getAlias());
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
+            final Optional<User> user = userDao.getByGuid(securityContext.getUserPrincipal().getName());
+            if (Objects.equals(userRequestBody.getAlias(), user.get().getAlias())) {
+                return new UserView(user.get());
+            }
 
             // check if alias has already being used
             final Optional<User> userOptional = userDao.getByAlias(userRequestBody.getAlias());
             if (userOptional.isPresent()) {
                 throw new BuzzException(ALIAS_EXIST);
             }
-
-            final Optional<User> user = userDao.getByGuid(securityContext.getUserPrincipal().getName());
 
             sessionProvider.startTransaction();
             userDao.setAlias(userRequestBody.getAlias(), user.get().getId());

@@ -20,6 +20,7 @@ import com.buzz.requestBody.BuzzLikeRequestBody;
 import com.buzz.requestBody.BuzzRequestBody;
 import com.buzz.view.BuzzListWithCompanyView;
 import com.buzz.view.BuzzView;
+import com.mysql.cj.core.util.StringUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -55,6 +56,45 @@ public class BuzzSource {
 
     private static final int TRENDING_BUZZ_MAX_DAYS = 14;
     private static final int TRENDING_BUZZ_LIMIT = 10;
+
+    @GET
+    @Path("/buzz/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<BuzzView> searchBuzz(@QueryParam("text") final String text,
+                                         @QueryParam("start") @DefaultValue("0") final int start,
+                                         @QueryParam("limit") @DefaultValue("50") final int limit,
+                                         @Context final SecurityContext securityContext) {
+        if (StringUtils.isEmptyOrWhitespaceOnly(text)) {
+            return emptyList();
+        }
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final UserDao userDao = new UserDao(sessionProvider);
+            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
+            final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+            final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
+
+            final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
+            final List<UserEmail> userEmails = userEmailDao.getByUserId(user.getId());
+            final List<Integer> companyIds = userEmails.stream().map(ue -> ue.getCompany().getId()).collect(toList());
+
+            final List<Buzz> buzzList = buzzDao.search(text, companyIds, start, limit);
+            if (buzzList.isEmpty()) {
+                return emptyList();
+            }
+            final List<Integer> buzzIds = buzzList.stream().map(Buzz::getId).collect(toList());
+            final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
+            final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Set<Integer> buzzFavoriteIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toSet());
+
+            final List<BuzzView> buzzViews = buzzList.stream()
+                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
+                    .collect(toList());
+
+            return buzzViews;
+        }
+    }
 
     @GET
     @Path("/buzz")
