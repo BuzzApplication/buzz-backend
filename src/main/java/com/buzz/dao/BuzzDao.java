@@ -41,7 +41,7 @@ public class BuzzDao extends BaseDao<Buzz> {
     public List<Buzz> getTrending(final int maxDays,
                                   final int limit) {
         final Query query = getSessionProvider().getSession().createQuery(
-                "FROM " + clazz.getName() + " WHERE created >= :maxDays ORDER BY commentsCount, likesCount DESC");
+                "FROM " + clazz.getName() + " WHERE created >= :maxDays ORDER BY commentsCount DESC, likesCount DESC");
         query.setParameter("maxDays", Instant.now().minus(maxDays, DAYS));
         query.setMaxResults(limit);
         return query.list();
@@ -102,7 +102,7 @@ public class BuzzDao extends BaseDao<Buzz> {
                 "WHERE (b.text LIKE :searchedText " +
                 "OR c.name LIKE :searchedText) " +
                 "AND c.id IN " + listObjectToSqlQueryInString(companyIds) + " " +
-                "ORDER BY b.commentsCount, b.likesCount DESC";
+                "ORDER BY b.commentsCount DESC, b.likesCount DESC";
         final Query query = getSessionProvider().getSession().createQuery(queryString);
         query.setParameter("searchedText", buildSearchedString(text));
         query.setFirstResult(start);
