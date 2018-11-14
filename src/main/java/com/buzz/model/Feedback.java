@@ -29,7 +29,7 @@ public class Feedback {
     private String text;
 
     @Column
-    private int version;
+    private Integer version;
 
     @Column
     private String userAgent;
@@ -97,11 +97,11 @@ public class Feedback {
         this.text = text;
     }
 
-    public int getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(int version) {
+    public void setVersion(final Integer version) {
         this.version = version;
     }
 
@@ -172,7 +172,7 @@ public class Feedback {
     public static class Builder {
         private int userId;
         private String text;
-        private int version;
+        private Integer version;
         private String userAgent;
         private String systemName;
         private String systemVersion;
@@ -190,7 +190,7 @@ public class Feedback {
             return this;
         }
 
-        public Builder version(final int version) {
+        public Builder version(final Integer version) {
             this.version = version;
             return this;
         }
