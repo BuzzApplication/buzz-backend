@@ -132,6 +132,26 @@ VALUES
 	('Spam'),
 	('Other');
 
+CREATE TABLE `Feedback` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `userId` int(11) unsigned NOT NULL,
+  `text` text NULL,
+  `version` int(11) unsigned NULL,
+  `userAgent` varchar(20) DEFAULT NULL,
+  `systemName` varchar(20) DEFAULT NULL,
+  `systemVersion` varchar(20) DEFAULT NULL,
+  `carrier` varchar(20) DEFAULT NULL,
+  `ipAddr` varchar(20) DEFAULT NULL,
+  `locale` varchar(20) DEFAULT NULL,
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+
+
 INSERT INTO `Authentication` (`guid`, `email`, `password`, `created`, `lastModified`)
 VALUES
 	('f771f429-d987-4ce4-9087-1468f0a64070', 'johnDoe@buzz.com', 'johnDoe', '2018-10-24 06:31:19', '2018-10-24 06:31:19');
