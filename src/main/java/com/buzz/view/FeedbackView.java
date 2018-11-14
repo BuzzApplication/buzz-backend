@@ -25,7 +25,7 @@ public class FeedbackView extends BaseView {
         return feedback.getText();
     }
 
-    public int getVersion() {
+    public Integer getVersion() {
         return feedback.getVersion();
     }
 

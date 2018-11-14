@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class FeedbackRequestBody implements Serializable {
 
     private String text;
-    private int version;
+    private Integer version;
     private String userAgent;
     private String systemName;
     private String systemVersion;
@@ -28,11 +28,11 @@ public class FeedbackRequestBody implements Serializable {
         this.text = text;
     }
 
-    public int getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(final int version) {
+    public void setVersion(final Integer version) {
         this.version = version;
     }
 
