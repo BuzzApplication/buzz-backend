@@ -30,5 +30,6 @@
         <mapping class="com.buzz.model.CommentLike"/>
         <mapping class="com.buzz.model.ReportCategory"/>
         <mapping class="com.buzz.model.Report"/>
+        <mapping class="com.buzz.model.Feedback"/>
     </session-factory>
 </hibernate-configuration>
