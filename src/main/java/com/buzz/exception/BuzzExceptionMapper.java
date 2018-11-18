@@ -19,6 +19,7 @@ public class BuzzExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(final Exception exception) {
         final ResponseError responseError = getResponseError(exception);
+        exception.printStackTrace();
         return buildResponse(responseError);
     }
 

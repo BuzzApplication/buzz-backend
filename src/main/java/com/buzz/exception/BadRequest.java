@@ -14,6 +14,8 @@ public enum BadRequest implements ResponseError {
     COMPANY_EMAIL_NOT_EXIST("Company email does not work in the company"),
     EMPTY_REQUEST_BODY("Request body cannot be empty"),
     INVALID_EMAIL_FORMAT("Email format is invalid"),
+    POLL_ALREADY_EXIST("Poll already exist"),
+    POLL_NOT_EXIST("Poll does not exist"),
     REPORT_CATEGORY_NOT_EXIST("Report category does not exist"),
     TEXT_CANNOT_BE_EMPTY("Text cannot be empty"),
     USER_ALREADY_EXIST("User already exist"),

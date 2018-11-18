@@ -2,6 +2,7 @@ package com.buzz.dao;
 
 import com.buzz.model.Buzz;
 import com.buzz.model.Company;
+import com.buzz.model.Poll;
 import com.buzz.model.UserEmail;
 import com.buzz.requestBody.BuzzRequestBody;
 import org.hibernate.query.Query;
@@ -21,8 +22,11 @@ import static java.util.Objects.requireNonNull;
  */
 public class BuzzDao extends BaseDao<Buzz> {
 
+    private final PollDao pollDao;
+
     public BuzzDao(final SessionProvider sessionProvider) {
         super(sessionProvider, Buzz.class);
+        pollDao = new PollDao(sessionProvider);
     }
 
     public List<Buzz> getByUserId(final int userId,
@@ -67,6 +71,8 @@ public class BuzzDao extends BaseDao<Buzz> {
                 .userEmail(userEmail)
                 .build();
         getSessionProvider().getSession().persist(buzz);
+        final List<Poll> polls = pollDao.savePolls(buzzRequestBody, buzz);
+        buzz.setPolls(polls);
         getSessionProvider().commitTransaction();
         return buzz;
     }
