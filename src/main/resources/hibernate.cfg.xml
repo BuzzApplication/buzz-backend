@@ -26,6 +26,8 @@
         <mapping class="com.buzz.model.Buzz"/>
         <mapping class="com.buzz.model.BuzzLike"/>
         <mapping class="com.buzz.model.BuzzFavorite"/>
+        <mapping class="com.buzz.model.Poll"/>
+        <mapping class="com.buzz.model.UserPoll"/>
         <mapping class="com.buzz.model.Comment"/>
         <mapping class="com.buzz.model.CommentLike"/>
         <mapping class="com.buzz.model.ReportCategory"/>

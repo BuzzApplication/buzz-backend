@@ -79,6 +79,27 @@ CREATE TABLE `BuzzFavorite` (
   PRIMARY KEY (`userId`, `buzzId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `Poll` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `buzzId` int(11) unsigned NOT NULL,
+  `text` varchar(512) DEFAULT NULL,
+  `count` int(11) unsigned NOT NULL,
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `buzzId` (`buzzId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `UserPoll` (
+  `pollId` int(11) unsigned NOT NULL,
+  `userId` int(11) unsigned NOT NULL,
+  `buzzId` int(11) unsigned NOT NULL,
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `lastModified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pollId`, `userId`),
+  KEY `buzzId` (`buzzId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `Comment` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `buzzId` int(11) unsigned NOT NULL,

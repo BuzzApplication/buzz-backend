@@ -9,6 +9,7 @@ import com.buzz.dao.CommentLikeDao;
 import com.buzz.dao.SessionProvider;
 import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
+import com.buzz.dao.UserPollDao;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Buzz;
 import com.buzz.model.BuzzFavorite;
@@ -17,6 +18,7 @@ import com.buzz.model.Comment;
 import com.buzz.model.CommentLike;
 import com.buzz.model.User;
 import com.buzz.model.UserEmail;
+import com.buzz.model.UserPoll;
 import com.buzz.requestBody.CommentLikeRequestBody;
 import com.buzz.requestBody.CommentRequestBody;
 import com.buzz.view.BuzzCommentListView;
@@ -34,6 +36,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,6 +46,8 @@ import static com.buzz.exception.BadRequest.TEXT_CANNOT_BE_EMPTY;
 import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_EXIST;
 import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_MATCH;
 import static com.buzz.source.user.BuzzSource.validateUserWorksAtCompany;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang.StringUtils.isEmpty;
@@ -65,6 +70,7 @@ public class CommentSource {
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
             final CommentDao commentDao = new CommentDao(sessionProvider);
             final CommentLikeDao commentLikeDao = new CommentLikeDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
             final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
@@ -85,8 +91,17 @@ public class CommentSource {
 
             final Optional<BuzzLike> buzzLike = buzzLikeDao.getByUserIdAndBuzzId(user.getId(), buzz.get().getId());
             final Optional<BuzzFavorite> buzzFavorite = buzzFavoriteDao.getByUserIdAndBuzzId(user.getId(), buzz.get().getId());
+            final List<UserPoll> userPolls = userPollDao.getByUserIdAndBuzzId(user.getId(), buzz.get().getId());
+            final Map<Integer, List<UserPoll>> buzzIdToUserPolls = userPolls.stream()
+                    .collect(groupingBy(UserPoll::getBuzzId));
 
-            final BuzzView buzzView = new BuzzView(buzz.get(), buzzLike.isPresent(), buzzFavorite.isPresent());
+            final BuzzView buzzView = new BuzzView(
+                    buzz.get(),
+                    buzzLike.isPresent(),
+                    buzzFavorite.isPresent(),
+                    buzzIdToUserPolls.containsKey(buzz.get().getId()) ?
+                            buzzIdToUserPolls.get(buzz.get().getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                            emptyList());
             return new BuzzCommentListView(buzzView, commentViews);
         }
     }

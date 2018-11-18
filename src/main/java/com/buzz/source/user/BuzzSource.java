@@ -5,21 +5,27 @@ import com.buzz.dao.BuzzDao;
 import com.buzz.dao.BuzzFavoriteDao;
 import com.buzz.dao.BuzzLikeDao;
 import com.buzz.dao.CompanyDao;
+import com.buzz.dao.PollDao;
 import com.buzz.dao.SessionProvider;
 import com.buzz.dao.UserDao;
 import com.buzz.dao.UserEmailDao;
+import com.buzz.dao.UserPollDao;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Buzz;
 import com.buzz.model.BuzzFavorite;
 import com.buzz.model.BuzzLike;
 import com.buzz.model.Company;
+import com.buzz.model.Poll;
 import com.buzz.model.User;
 import com.buzz.model.UserEmail;
+import com.buzz.model.UserPoll;
 import com.buzz.requestBody.BuzzFavoriteRequestBody;
 import com.buzz.requestBody.BuzzLikeRequestBody;
 import com.buzz.requestBody.BuzzRequestBody;
+import com.buzz.requestBody.PollRequestBody;
 import com.buzz.view.BuzzListWithCompanyView;
 import com.buzz.view.BuzzView;
+import com.buzz.view.PollView;
 import com.mysql.cj.core.util.StringUtils;
 
 import javax.ws.rs.Consumes;
@@ -39,6 +45,8 @@ import java.util.Set;
 
 import static com.buzz.exception.BadRequest.BUZZ_NOT_EXIST;
 import static com.buzz.exception.BadRequest.COMPANY_NOT_EXIST;
+import static com.buzz.exception.BadRequest.POLL_ALREADY_EXIST;
+import static com.buzz.exception.BadRequest.POLL_NOT_EXIST;
 import static com.buzz.exception.BadRequest.TEXT_CANNOT_BE_EMPTY;
 import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_EXIST;
 import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_MATCH;
@@ -72,6 +80,7 @@ public class BuzzSource {
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
             final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
@@ -87,10 +96,19 @@ public class BuzzSource {
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
             final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzFavoriteIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toSet());
+            final List<UserPoll> userPolls = userPollDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Map<Integer, List<UserPoll>> buzzIdToUserPolls = userPolls.stream()
+                    .collect(groupingBy(UserPoll::getBuzzId));
 
             final List<BuzzView> buzzViews = buzzList.stream()
-                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
-                    .collect(toList());
+                    .map(buzz -> new BuzzView(
+                            buzz,
+                            buzzLikeIds.contains(buzz.getId()),
+                            buzzFavoriteIds.contains(buzz.getId()),
+                            buzzIdToUserPolls.containsKey(buzz.getId()) ?
+                                    buzzIdToUserPolls.get(buzz.getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                                    emptyList()))
+                        .collect(toList());
 
             return buzzViews;
         }
@@ -111,6 +129,7 @@ public class BuzzSource {
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
             final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
@@ -125,9 +144,18 @@ public class BuzzSource {
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
             final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzFavoriteIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toSet());
+            final List<UserPoll> userPolls = userPollDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Map<Integer, List<UserPoll>> buzzIdToUserPolls = userPolls.stream()
+                    .collect(groupingBy(UserPoll::getBuzzId));
 
             final List<BuzzView> buzzViews = buzzList.stream()
-                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
+                    .map(buzz -> new BuzzView(
+                            buzz,
+                            buzzLikeIds.contains(buzz.getId()),
+                            buzzFavoriteIds.contains(buzz.getId()),
+                            buzzIdToUserPolls.containsKey(buzz.getId()) ?
+                                    buzzIdToUserPolls.get(buzz.getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                                    emptyList()))
                     .collect(toList());
             final Map<Integer, List<BuzzView>> buzzListByCompanyId = buzzViews.stream().collect(groupingBy(BuzzView::getCompanyId));
 
@@ -146,6 +174,7 @@ public class BuzzSource {
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
 
@@ -158,9 +187,18 @@ public class BuzzSource {
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
             final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzFavoriteIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toSet());
+            final List<UserPoll> userPolls = userPollDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Map<Integer, List<UserPoll>> buzzIdToUserPolls = userPolls.stream()
+                    .collect(groupingBy(UserPoll::getBuzzId));
 
             final List<BuzzView> buzzViews = buzzList.stream()
-                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
+                    .map(buzz -> new BuzzView(
+                            buzz,
+                            buzzLikeIds.contains(buzz.getId()),
+                            buzzFavoriteIds.contains(buzz.getId()),
+                            buzzIdToUserPolls.containsKey(buzz.getId()) ?
+                                    buzzIdToUserPolls.get(buzz.getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                                    emptyList()))
                     .collect(toList());
 
             return buzzViews;
@@ -178,6 +216,7 @@ public class BuzzSource {
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
 
@@ -190,9 +229,18 @@ public class BuzzSource {
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
             final List<BuzzFavorite> buzzFavorites = buzzFavoriteDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzFavoriteIds = buzzFavorites.stream().map(BuzzFavorite::getBuzzId).collect(toSet());
+            final List<UserPoll> userPolls = userPollDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Map<Integer, List<UserPoll>> buzzIdToUserPolls = userPolls.stream()
+                    .collect(groupingBy(UserPoll::getBuzzId));
 
             final List<BuzzView> buzzViews = buzzList.stream()
-                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), buzzFavoriteIds.contains(buzz.getId())))
+                    .map(buzz -> new BuzzView(
+                            buzz,
+                            buzzLikeIds.contains(buzz.getId()),
+                            buzzFavoriteIds.contains(buzz.getId()),
+                            buzzIdToUserPolls.containsKey(buzz.getId()) ?
+                                    buzzIdToUserPolls.get(buzz.getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                                    emptyList()))
                     .collect(toList());
 
             return buzzViews;
@@ -210,6 +258,7 @@ public class BuzzSource {
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
 
@@ -222,9 +271,18 @@ public class BuzzSource {
             final List<Buzz> buzzList = buzzDao.getByIds(buzzIds, start, limit);
             final List<BuzzLike> buzzLikes = buzzLikeDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
             final Set<Integer> buzzLikeIds = buzzLikes.stream().map(BuzzLike::getBuzzId).collect(toSet());
+            final List<UserPoll> userPolls = userPollDao.getByUserIdAndBuzzIds(user.getId(), buzzIds);
+            final Map<Integer, List<UserPoll>> buzzIdToUserPolls = userPolls.stream()
+                    .collect(groupingBy(UserPoll::getBuzzId));
 
             final List<BuzzView> buzzViews = buzzList.stream()
-                    .map(buzz -> new BuzzView(buzz, buzzLikeIds.contains(buzz.getId()), true))
+                    .map(buzz -> new BuzzView(
+                            buzz,
+                            buzzLikeIds.contains(buzz.getId()),
+                            true,
+                            buzzIdToUserPolls.containsKey(buzz.getId()) ?
+                                    buzzIdToUserPolls.get(buzz.getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                                    emptyList()))
                     .collect(toList());
 
             return buzzViews;
@@ -292,7 +350,48 @@ public class BuzzSource {
 
             final Buzz buzz = buzzDao.postBuzz(buzzRequestBody, userEmail.get(), company.get());
 
-            return new BuzzView(buzz, false, false);
+            return new BuzzView(buzz, false, false, emptyList());
+        }
+    }
+
+    @POST
+    @Path("/buzz/poll")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public PollView poll(final PollRequestBody pollRequestBody,
+                         @Context final SecurityContext securityContext) {
+        try (final SessionProvider sessionProvider = new SessionProvider()) {
+            final UserDao userDao = new UserDao(sessionProvider);
+            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
+            final PollDao pollDao = new PollDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
+
+            final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
+
+            final Optional<UserPoll> userPolls = userPollDao.getByUserIdAndPollId(user.getId(), pollRequestBody.getPollId());
+            if (userPolls.isPresent()) {
+                throw new BuzzException(POLL_ALREADY_EXIST);
+            }
+
+            final Optional<Buzz> buzz = buzzDao.getByIdOptional(pollRequestBody.getBuzzId());
+            if (!buzz.isPresent()) {
+                throw new BuzzException(BUZZ_NOT_EXIST);
+            }
+
+            final Optional<Poll> poll = pollDao.getByIdOptional(pollRequestBody.getPollId());
+            if (!poll.isPresent()) {
+                throw new BuzzException(POLL_NOT_EXIST);
+            }
+
+            sessionProvider.startTransaction();
+            userPollDao.poll(pollRequestBody, user.getId());
+            pollDao.increasePollCount(pollRequestBody.getPollId());
+            sessionProvider.commitTransaction();
+            sessionProvider.getSession().refresh(poll.get());
+            sessionProvider.getSession().refresh(buzz.get());
+
+            final int totalPolls = buzz.get().getPolls().stream().map(Poll::getCount).mapToInt(Integer::intValue).sum();
+            return new PollView(poll.get(), totalPolls, true);
         }
     }
 
@@ -307,6 +406,7 @@ public class BuzzSource {
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
             final Optional<Buzz> buzz = buzzDao.getByIdOptional(buzzLikeRequestBody.getBuzzId());
@@ -315,11 +415,20 @@ public class BuzzSource {
             }
 
             final Optional<BuzzFavorite> buzzFavorite = buzzFavoriteDao.getByUserIdAndBuzzId(user.getId(), buzzLikeRequestBody.getBuzzId());
+            final List<UserPoll> userPolls = userPollDao.getByUserIdAndBuzzId(user.getId(), buzz.get().getId());
+            final Map<Integer, List<UserPoll>> buzzIdToUserPolls = userPolls.stream()
+                    .collect(groupingBy(UserPoll::getBuzzId));
 
             // already liked/unliked
             final Optional<BuzzLike> buzzLiked = buzzLikeDao.getByUserIdAndBuzzId(user.getId(), buzzLikeRequestBody.getBuzzId());
             if (buzzLikeRequestBody.isLiked() == buzzLiked.isPresent()) {
-                return new BuzzView(buzz.get(), buzzLiked.isPresent(), buzzFavorite.isPresent());
+                return new BuzzView(
+                        buzz.get(),
+                        buzzLiked.isPresent(),
+                        buzzFavorite.isPresent(),
+                        buzzIdToUserPolls.containsKey(buzz.get().getId()) ?
+                                buzzIdToUserPolls.get(buzz.get().getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                                emptyList());
             }
 
             sessionProvider.startTransaction();
@@ -334,7 +443,13 @@ public class BuzzSource {
             sessionProvider.commitTransaction();
             sessionProvider.getSession().refresh(buzz.get());
 
-            return new BuzzView(buzz.get(), buzzLikeRequestBody.isLiked(), buzzFavorite.isPresent());
+            return new BuzzView(
+                    buzz.get(),
+                    buzzLikeRequestBody.isLiked(),
+                    buzzFavorite.isPresent(),
+                    buzzIdToUserPolls.containsKey(buzz.get().getId()) ?
+                            buzzIdToUserPolls.get(buzz.get().getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                            emptyList());
         }
     }
 
@@ -349,6 +464,7 @@ public class BuzzSource {
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final UserPollDao userPollDao = new UserPollDao(sessionProvider);
 
             final User user = userDao.getByGuid(securityContext.getUserPrincipal().getName()).get();
             final Optional<Buzz> buzz = buzzDao.getByIdOptional(buzzFavoriteRequestBody.getBuzzId());
@@ -357,11 +473,20 @@ public class BuzzSource {
             }
 
             final Optional<BuzzLike> buzzLike = buzzLikeDao.getByUserIdAndBuzzId(user.getId(), buzzFavoriteRequestBody.getBuzzId());
+            final List<UserPoll> userPolls = userPollDao.getByUserIdAndBuzzId(user.getId(), buzz.get().getId());
+            final Map<Integer, List<UserPoll>> buzzIdToUserPolls = userPolls.stream()
+                    .collect(groupingBy(UserPoll::getBuzzId));
 
             // already favorite/unfavorite
             final Optional<BuzzFavorite> buzzFavorited = buzzFavoriteDao.getByUserIdAndBuzzId(user.getId(), buzzFavoriteRequestBody.getBuzzId());
             if (buzzFavoriteRequestBody.isFavorited() == buzzFavorited.isPresent()) {
-                return new BuzzView(buzz.get(), buzzLike.isPresent(), buzzFavorited.isPresent());
+                return new BuzzView(
+                        buzz.get(),
+                        buzzLike.isPresent(),
+                        buzzFavorited.isPresent(),
+                        buzzIdToUserPolls.containsKey(buzz.get().getId()) ?
+                                buzzIdToUserPolls.get(buzz.get().getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                                emptyList());
             }
 
             sessionProvider.startTransaction();
@@ -376,7 +501,13 @@ public class BuzzSource {
             sessionProvider.commitTransaction();
             sessionProvider.getSession().refresh(buzz.get());
 
-            return new BuzzView(buzz.get(), buzzLike.isPresent(), buzzFavoriteRequestBody.isFavorited());
+            return new BuzzView(
+                    buzz.get(),
+                    buzzLike.isPresent(),
+                    buzzFavoriteRequestBody.isFavorited(),
+                    buzzIdToUserPolls.containsKey(buzz.get().getId()) ?
+                            buzzIdToUserPolls.get(buzz.get().getId()).stream().map(UserPoll::getPollId).collect(toList()) :
+                            emptyList());
         }
     }
 

@@ -12,7 +12,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by toshikijahja on 7/29/17.
@@ -44,6 +47,9 @@ public class Buzz {
     @Column
     private int commentsCount = 0;
 
+    @OneToMany(mappedBy = "buzz")
+    private List<Poll> polls = new ArrayList<>();
+
     @Column
     @CreationTimestamp
     private Instant created;
@@ -63,6 +69,7 @@ public class Buzz {
         setUserEmail(builder.userEmail);
         setLikesCount(builder.likesCount);
         setCommentsCount(builder.commentsCount);
+        setPolls(builder.polls);
     }
 
     public int getId() {
@@ -117,8 +124,16 @@ public class Buzz {
         return this.commentsCount;
     }
 
-    public void setCommentsCount(final int commentCount) {
+    public void setCommentsCount(final int commentsCount) {
         this.commentsCount = commentsCount;
+    }
+
+    public List<Poll> getPolls() {
+        return this.polls;
+    }
+
+    public void setPolls(final List<Poll> polls) {
+        this.polls = polls;
     }
 
     public Instant getCreated() {
@@ -144,6 +159,7 @@ public class Buzz {
         private UserEmail userEmail;
         private int likesCount;
         private int commentsCount;
+        private List<Poll> polls;
 
         public Builder text(final String text) {
             this.text = text;
@@ -172,6 +188,11 @@ public class Buzz {
 
         public Builder commentsCount(final int commentsCount) {
             this.commentsCount = commentsCount;
+            return this;
+        }
+
+        public Builder polls(final List<Poll> polls) {
+            this.polls = polls;
             return this;
         }
 
