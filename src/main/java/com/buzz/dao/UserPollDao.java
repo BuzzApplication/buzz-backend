@@ -1,7 +1,6 @@
 package com.buzz.dao;
 
 import com.buzz.model.UserPoll;
-import com.buzz.requestBody.PollRequestBody;
 import org.hibernate.query.Query;
 
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.Optional;
 import static com.buzz.utils.QueryUtils.listObjectToSqlQueryInString;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 
 /**
  * Created by toshikijahja on 6/7/17.
@@ -57,14 +55,14 @@ public class UserPollDao extends BaseDao<UserPoll> {
         return query.list();
     }
 
-    public UserPoll poll(final PollRequestBody pollRequestBody,
+    public UserPoll poll(final int pollId,
+                         final int buzzId,
                          final int userId) {
-        requireNonNull(pollRequestBody);
         getSessionProvider().startTransaction();
         final UserPoll userPoll = new UserPoll.Builder()
-                .pollId(pollRequestBody.getPollId())
+                .pollId(pollId)
                 .userId(userId)
-                .buzzId(pollRequestBody.getBuzzId())
+                .buzzId(buzzId)
                 .build();
         getSessionProvider().getSession().persist(userPoll);
         getSessionProvider().commitTransaction();

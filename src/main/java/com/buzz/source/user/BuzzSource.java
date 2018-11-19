@@ -25,7 +25,6 @@ import com.buzz.requestBody.BuzzRequestBody;
 import com.buzz.requestBody.PollRequestBody;
 import com.buzz.view.BuzzListWithCompanyView;
 import com.buzz.view.BuzzView;
-import com.buzz.view.PollView;
 import com.mysql.cj.core.util.StringUtils;
 
 import javax.ws.rs.Consumes;
@@ -358,11 +357,12 @@ public class BuzzSource {
     @Path("/buzz/poll")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public PollView poll(final PollRequestBody pollRequestBody,
+    public BuzzView poll(final PollRequestBody pollRequestBody,
                          @Context final SecurityContext securityContext) {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
-            final BuzzDao buzzDao = new BuzzDao(sessionProvider);
+            final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
+            final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
             final PollDao pollDao = new PollDao(sessionProvider);
             final UserPollDao userPollDao = new UserPollDao(sessionProvider);
 
@@ -373,25 +373,22 @@ public class BuzzSource {
                 throw new BuzzException(POLL_ALREADY_EXIST);
             }
 
-            final Optional<Buzz> buzz = buzzDao.getByIdOptional(pollRequestBody.getBuzzId());
-            if (!buzz.isPresent()) {
-                throw new BuzzException(BUZZ_NOT_EXIST);
-            }
-
             final Optional<Poll> poll = pollDao.getByIdOptional(pollRequestBody.getPollId());
             if (!poll.isPresent()) {
                 throw new BuzzException(POLL_NOT_EXIST);
             }
 
             sessionProvider.startTransaction();
-            userPollDao.poll(pollRequestBody, user.getId());
+            userPollDao.poll(pollRequestBody.getPollId(), poll.get().getBuzz().getId(), user.getId());
             pollDao.increasePollCount(pollRequestBody.getPollId());
             sessionProvider.commitTransaction();
             sessionProvider.getSession().refresh(poll.get());
-            sessionProvider.getSession().refresh(buzz.get());
 
-            final int totalPolls = buzz.get().getPolls().stream().map(Poll::getCount).mapToInt(Integer::intValue).sum();
-            return new PollView(poll.get(), totalPolls, true);
+            final Buzz buzz = poll.get().getBuzz();
+            final Optional<BuzzFavorite> buzzFavorite = buzzFavoriteDao.getByUserIdAndBuzzId(user.getId(), buzz.getId());
+            final Optional<BuzzLike> buzzLike = buzzLikeDao.getByUserIdAndBuzzId(user.getId(), buzz.getId());
+
+            return new BuzzView(buzz, buzzLike.isPresent(), buzzFavorite.isPresent(), singletonList(poll.get().getId()));
         }
     }
 
