@@ -7,19 +7,10 @@ import java.io.Serializable;
  */
 public class PollRequestBody implements Serializable {
 
-    private int buzzId;
     private int pollId;
 
     public PollRequestBody() {
 
-    }
-
-    public int getBuzzId() {
-        return this.buzzId;
-    }
-
-    public void setBuzzId(final int buzzId) {
-        this.buzzId = buzzId;
     }
 
     public int getPollId() {

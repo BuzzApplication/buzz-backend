@@ -17,6 +17,7 @@ public class BuzzView extends BaseView {
     private final boolean liked;
     private final boolean favorited;
     private final int totalPolls;
+    private final boolean polled;
     private final List<PollView> pollViews;
 
     public BuzzView(final Buzz buzz,
@@ -29,6 +30,7 @@ public class BuzzView extends BaseView {
         this.totalPolls = buzz.getPolls().stream().map(Poll::getCount).mapToInt(Integer::intValue).sum();
         this.pollViews = buzz.getPolls().stream()
                 .map(poll -> new PollView(poll, totalPolls, polledId.contains(poll.getId()))).collect(toList());
+        this.polled = pollViews.stream().anyMatch(PollView::isPolled);
     }
 
     public int getId() {
@@ -81,5 +83,9 @@ public class BuzzView extends BaseView {
 
     public List<PollView> getPolls() {
         return pollViews;
+    }
+
+    public boolean getPolled() {
+        return this.polled;
     }
 }

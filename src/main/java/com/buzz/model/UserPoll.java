@@ -43,7 +43,7 @@ public class UserPoll {
     public UserPoll(final Builder builder) {
         setPollId(builder.pollId);
         setUserId(builder.userId);
-        setPollId(builder.pollId);
+        setBuzzId(builder.buzzId);
     }
 
     public int getPollId() {
