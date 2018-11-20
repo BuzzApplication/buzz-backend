@@ -489,10 +489,8 @@ public class BuzzSource {
             sessionProvider.startTransaction();
             if (buzzFavoriteRequestBody.isFavorited()) {
                 buzzFavoriteDao.favoriteBuzz(user.getId(), buzzFavoriteRequestBody.getBuzzId());
-                buzzDao.increaseLikesCount(buzz.get().getId());
             } else {
                 buzzFavoriteDao.unfavoriteBuzz(user.getId(), buzzFavoriteRequestBody.getBuzzId());
-                buzzDao.decreaseLikesCount(buzz.get().getId());
             }
 
             sessionProvider.commitTransaction();
