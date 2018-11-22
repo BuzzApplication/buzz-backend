@@ -68,9 +68,9 @@ public class BuzzSource {
     @Path("/buzz/search")
     @Produces(MediaType.APPLICATION_JSON)
     public List<BuzzView> searchBuzz(@QueryParam("text") final String text,
-                                         @QueryParam("start") @DefaultValue("0") final int start,
-                                         @QueryParam("limit") @DefaultValue("50") final int limit,
-                                         @Context final SecurityContext securityContext) {
+                                     @QueryParam("start") @DefaultValue("0") final int start,
+                                     @QueryParam("limit") @DefaultValue("50") final int limit,
+                                     @Context final SecurityContext securityContext) {
         if (StringUtils.isEmptyOrWhitespaceOnly(text)) {
             return emptyList();
         }
