@@ -1,4 +1,4 @@
-package com.buzz.api.auth;
+package com.buzz.auth;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;

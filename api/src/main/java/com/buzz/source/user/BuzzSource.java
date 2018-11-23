@@ -1,6 +1,6 @@
-package com.buzz.api.source.user;
+package com.buzz.source.user;
 
-import com.buzz.api.auth.UserAuth;
+import com.buzz.auth.UserAuth;
 import com.buzz.dao.BuzzDao;
 import com.buzz.dao.BuzzFavoriteDao;
 import com.buzz.dao.BuzzLikeDao;
