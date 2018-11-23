@@ -74,6 +74,7 @@ public class BuzzSource {
         if (StringUtils.isEmptyOrWhitespaceOnly(text)) {
             return emptyList();
         }
+
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
