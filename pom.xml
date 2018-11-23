@@ -8,6 +8,7 @@
   <modules>
     <module>api</module>
     <module>protobuf</module>
+      <module>common</module>
   </modules>
   <name>buzz</name>
   <url>http://maven.apache.org</url>

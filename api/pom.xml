@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>com.buzz</groupId>
-            <artifactId>protobuf</artifactId>
+            <artifactId>common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
@@ -97,38 +97,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!--log4j-->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.6.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.owlike</groupId>
-            <artifactId>genson</artifactId>
-            <version>1.4</version>
-        </dependency>
-
-        <!-- Mysql Connector -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>6.0.5</version>
-        </dependency>
-
-        <!-- Hibernate -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>5.3.7.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>6.0.13.Final</version>
-        </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -148,32 +116,11 @@
             <version>0.9.0</version>
         </dependency>
 
-        <!--settings file-->
-        <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-            <version>1.10</version>
-        </dependency>
-
         <!--email-->
         <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
             <version>1.4</version>
-        </dependency>
-
-        <!--redis-->
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>3.0.0-m1</version>
-        </dependency>
-
-        <!--protobuf-->
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>3.6.1</version>
         </dependency>
 
     </dependencies>
