@@ -1,4 +1,4 @@
-package com.buzz.dao;
+package com.buzz.dao.persistent;
 
 import com.buzz.model.Buzz;
 import com.buzz.model.Company;
@@ -10,7 +10,6 @@ import org.hibernate.query.Query;
 import java.time.Instant;
 import java.util.List;
 
-import static com.buzz.dao.BaseDao.Sort.DESC;
 import static com.buzz.utils.QueryUtils.listObjectToSqlQueryInString;
 import static java.lang.String.join;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -32,13 +31,13 @@ public class BuzzDao extends BaseDao<Buzz> {
     public List<Buzz> getByUserId(final int userId,
                                   final int start,
                                   final int limit) {
-        return getByFieldSortedAndPaginated("userEmail.user.id", userId, "created", DESC, start, limit);
+        return getByFieldSortedAndPaginated("userEmail.user.id", userId, "created", Sort.DESC, start, limit);
     }
 
     public List<Buzz> getByIds(final List<Integer> buzzIds,
                                final int start,
                                final int limit) {
-        return getByFieldSortedAndPaginated("id", buzzIds, "created", DESC, start, limit);
+        return getByFieldSortedAndPaginated("id", buzzIds, "created", Sort.DESC, start, limit);
     }
 
     @SuppressWarnings("unchecked")
@@ -54,7 +53,7 @@ public class BuzzDao extends BaseDao<Buzz> {
     public List<Buzz> getByCompanyIds(final List<Integer> companyIds,
                                       final int start,
                                       final int limit) {
-        return getByFieldSortedAndPaginated("companyId", companyIds, "created", DESC, start, limit);
+        return getByFieldSortedAndPaginated("companyId", companyIds, "created", Sort.DESC, start, limit);
     }
 
     public Buzz postBuzz(final BuzzRequestBody buzzRequestBody,

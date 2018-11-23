@@ -1,4 +1,4 @@
-package com.buzz.dao;
+package com.buzz.dao.persistent;
 
 import com.buzz.model.Comment;
 import com.buzz.model.UserEmail;
@@ -7,7 +7,6 @@ import org.hibernate.query.Query;
 
 import java.util.List;
 
-import static com.buzz.dao.BaseDao.Sort.ASC;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -22,7 +21,7 @@ public class CommentDao extends BaseDao<Comment> {
     public List<Comment> getByBuzzId(final int buzzId,
                                      final int start,
                                      final int limit) {
-        return getByFieldSortedAndPaginated("buzzId", buzzId, "created", ASC, start, limit);
+        return getByFieldSortedAndPaginated("buzzId", buzzId, "created", Sort.ASC, start, limit);
     }
 
     public Comment postComment(final CommentRequestBody commentRequestBody,

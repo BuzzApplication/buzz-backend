@@ -1,10 +1,10 @@
 package com.buzz.source.user;
 
 import com.buzz.auth.UserAuth;
-import com.buzz.dao.ReportCategoryDao;
-import com.buzz.dao.ReportDao;
-import com.buzz.dao.SessionProvider;
-import com.buzz.dao.UserDao;
+import com.buzz.dao.persistent.ReportCategoryDao;
+import com.buzz.dao.persistent.ReportDao;
+import com.buzz.dao.persistent.SessionProvider;
+import com.buzz.dao.persistent.UserDao;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Report;
 import com.buzz.model.ReportCategory;

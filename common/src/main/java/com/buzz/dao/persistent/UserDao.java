@@ -1,4 +1,4 @@
-package com.buzz.dao;
+package com.buzz.dao.persistent;
 
 import com.buzz.model.User;
 import org.apache.commons.lang.RandomStringUtils;

@@ -1,15 +1,16 @@
 package com.buzz.source.user;
 
 import com.buzz.auth.UserAuth;
-import com.buzz.dao.BuzzDao;
-import com.buzz.dao.BuzzFavoriteDao;
-import com.buzz.dao.BuzzLikeDao;
-import com.buzz.dao.CommentDao;
-import com.buzz.dao.CommentLikeDao;
-import com.buzz.dao.SessionProvider;
-import com.buzz.dao.UserDao;
-import com.buzz.dao.UserEmailDao;
-import com.buzz.dao.UserPollDao;
+import com.buzz.dao.persistent.BuzzDao;
+import com.buzz.dao.persistent.BuzzFavoriteDao;
+import com.buzz.dao.persistent.BuzzLikeDao;
+import com.buzz.dao.persistent.CommentDao;
+import com.buzz.dao.persistent.CommentLikeDao;
+import com.buzz.dao.persistent.SessionProvider;
+import com.buzz.dao.persistent.UserDao;
+import com.buzz.dao.persistent.UserEmailDao;
+import com.buzz.dao.persistent.UserPollDao;
+import com.buzz.dao.redis.NotificationRedisHelper;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Buzz;
 import com.buzz.model.BuzzFavorite;
@@ -24,6 +25,7 @@ import com.buzz.requestBody.CommentRequestBody;
 import com.buzz.view.BuzzCommentListView;
 import com.buzz.view.BuzzView;
 import com.buzz.view.CommentView;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -55,6 +57,12 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 @Path("/user")
 @UserAuth
 public class CommentSource {
+
+    private final NotificationRedisHelper notificationRedisHelper;
+
+    public CommentSource() {
+        notificationRedisHelper = new NotificationRedisHelper();
+    }
 
     @GET
     @Path("/comment")
@@ -111,7 +119,7 @@ public class CommentSource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public CommentView postComment(final CommentRequestBody commentRequestBody,
-                                   @Context final SecurityContext securityContext) {
+                                   @Context final SecurityContext securityContext) throws InvalidProtocolBufferException {
         if(isEmpty(commentRequestBody.getText())) {
             throw new BuzzException(TEXT_CANNOT_BE_EMPTY);
         }
@@ -140,7 +148,10 @@ public class CommentSource {
 
             validateUserWorksAtCompany(user.getId(), buzz.get().getCompanyId(), userEmailDao);
 
+            sessionProvider.startTransaction();
             final Comment comment = commentDao.postComment(commentRequestBody, userEmail.get(), buzzDao);
+            notificationRedisHelper.addNotificationComment(buzz.get(), userEmail.get());
+            sessionProvider.commitTransaction();
 
             return new CommentView(comment, false);
         }

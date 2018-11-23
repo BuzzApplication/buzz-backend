@@ -1,4 +1,4 @@
-package com.buzz.dao;
+package com.buzz.dao.persistent;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;

@@ -1,9 +1,9 @@
 package com.buzz.source.user;
 
 import com.buzz.auth.UserAuth;
-import com.buzz.dao.FeedbackDao;
-import com.buzz.dao.SessionProvider;
-import com.buzz.dao.UserDao;
+import com.buzz.dao.persistent.FeedbackDao;
+import com.buzz.dao.persistent.SessionProvider;
+import com.buzz.dao.persistent.UserDao;
 import com.buzz.model.Feedback;
 import com.buzz.model.User;
 import com.buzz.requestBody.FeedbackRequestBody;

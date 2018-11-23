@@ -4,17 +4,21 @@ option java_package = "com.buzz";
 option java_outer_classname = "NotificationProto";
 
 message Notification {
-    required uint32 id = 1;
-    required string message = 2;
-    required uint32 itemId = 3;
-    required Type type = 4;
+    required string message = 1;
+    required uint32 itemId = 2;
+    required Type type = 3;
+    required Action action = 4;
     required Status status = 5;
 }
 
 enum Type {
-    option allow_alias = true;
     BUZZ = 0;
-    COMMENT = 0;
+    COMMENT = 1;
+}
+
+enum Action {
+    LIKE_ACTION = 0;
+    COMMENT_ACTION = 1;
 }
 
 enum Status {

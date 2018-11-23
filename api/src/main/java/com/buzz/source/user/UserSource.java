@@ -1,12 +1,12 @@
 package com.buzz.source.user;
 
 import com.buzz.auth.UserAuth;
-import com.buzz.dao.AuthenticationDao;
-import com.buzz.dao.CompanyDao;
-import com.buzz.dao.CompanyEmailDao;
-import com.buzz.dao.SessionProvider;
-import com.buzz.dao.UserDao;
-import com.buzz.dao.UserEmailDao;
+import com.buzz.dao.persistent.AuthenticationDao;
+import com.buzz.dao.persistent.CompanyDao;
+import com.buzz.dao.persistent.CompanyEmailDao;
+import com.buzz.dao.persistent.SessionProvider;
+import com.buzz.dao.persistent.UserDao;
+import com.buzz.dao.persistent.UserEmailDao;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Authentication;
 import com.buzz.model.Company;

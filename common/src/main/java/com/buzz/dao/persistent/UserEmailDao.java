@@ -1,4 +1,4 @@
-package com.buzz.dao;
+package com.buzz.dao.persistent;
 
 import com.buzz.model.Company;
 import com.buzz.model.User;
@@ -8,7 +8,6 @@ import org.hibernate.query.Query;
 import java.util.List;
 import java.util.Optional;
 
-import static com.buzz.dao.BaseDao.Sort.ASC;
 import static com.buzz.utils.QueryUtils.listObjectToSqlQueryInString;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -39,7 +38,7 @@ public class UserEmailDao extends BaseDao<UserEmail> {
     }
 
     public List<UserEmail> getByUserId(final int userId) {
-        return getByFieldSorted("user.id", userId, "created", ASC);
+        return getByFieldSorted("user.id", userId, "created", Sort.ASC);
     }
 
     public Optional<UserEmail> getByEmail(final String email) {
