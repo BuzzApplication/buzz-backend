@@ -1,4 +1,4 @@
-package com.buzz.api.email;
+package com.buzz.email;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
