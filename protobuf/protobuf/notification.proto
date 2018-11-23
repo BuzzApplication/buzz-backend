@@ -1,0 +1,23 @@
+package com.buzz;
+
+option java_package = "com.buzz";
+option java_outer_classname = "NotificationProto";
+
+message Notification {
+    required uint32 id = 1;
+    required string message = 2;
+    required uint32 itemId = 3;
+    required Type type = 4;
+    required Status status = 5;
+}
+
+enum Type {
+    option allow_alias = true;
+    BUZZ = 0;
+    COMMENT = 0;
+}
+
+enum Status {
+    READ = 0;
+    UNREAD = 1;
+}
