@@ -1,4 +1,4 @@
-package com.buzz.dao;
+package com.buzz.dao.persistent;
 
 import jersey.repackaged.com.google.common.collect.Iterables;
 import org.hibernate.query.Query;

@@ -1,4 +1,4 @@
-package com.buzz.dao;
+package com.buzz.dao.persistent;
 
 import com.buzz.exception.BuzzException;
 import com.buzz.model.CommentLike;

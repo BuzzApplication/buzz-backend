@@ -1,15 +1,15 @@
 package com.buzz.source.user;
 
 import com.buzz.auth.UserAuth;
-import com.buzz.dao.BuzzDao;
-import com.buzz.dao.BuzzFavoriteDao;
-import com.buzz.dao.BuzzLikeDao;
-import com.buzz.dao.CompanyDao;
-import com.buzz.dao.PollDao;
-import com.buzz.dao.SessionProvider;
-import com.buzz.dao.UserDao;
-import com.buzz.dao.UserEmailDao;
-import com.buzz.dao.UserPollDao;
+import com.buzz.dao.persistent.BuzzDao;
+import com.buzz.dao.persistent.BuzzFavoriteDao;
+import com.buzz.dao.persistent.BuzzLikeDao;
+import com.buzz.dao.persistent.CompanyDao;
+import com.buzz.dao.persistent.PollDao;
+import com.buzz.dao.persistent.SessionProvider;
+import com.buzz.dao.persistent.UserDao;
+import com.buzz.dao.persistent.UserEmailDao;
+import com.buzz.dao.persistent.UserPollDao;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Buzz;
 import com.buzz.model.BuzzFavorite;
