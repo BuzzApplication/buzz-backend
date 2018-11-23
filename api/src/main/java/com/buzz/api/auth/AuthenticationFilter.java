@@ -1,4 +1,4 @@
-package com.buzz.auth;
+package com.buzz.api.auth;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -10,7 +10,7 @@ import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.security.Principal;
 
-import static com.buzz.auth.JWTUtil.parseJWT;
+import static com.buzz.api.auth.JWTUtil.parseJWT;
 import static javax.ws.rs.core.HttpHeaders.WWW_AUTHENTICATE;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static javax.ws.rs.core.Response.status;

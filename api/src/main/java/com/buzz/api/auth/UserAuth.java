@@ -1,4 +1,4 @@
-package com.buzz.auth;
+package com.buzz.api.auth;
 
 import javax.ws.rs.NameBinding;
 import java.lang.annotation.Retention;

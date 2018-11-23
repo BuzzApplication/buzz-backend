@@ -1,6 +1,6 @@
-package com.buzz.source.user;
+package com.buzz.api.source.user;
 
-import com.buzz.auth.UserAuth;
+import com.buzz.api.auth.UserAuth;
 import com.buzz.dao.ReportCategoryDao;
 import com.buzz.dao.ReportDao;
 import com.buzz.dao.SessionProvider;
