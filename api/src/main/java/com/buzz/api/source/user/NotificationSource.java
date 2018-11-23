@@ -1,6 +1,6 @@
-package com.buzz.source.user;
+package com.buzz.api.source.user;
 
-import com.buzz.auth.UserAuth;
+import com.buzz.api.auth.UserAuth;
 
 import javax.ws.rs.Path;
 

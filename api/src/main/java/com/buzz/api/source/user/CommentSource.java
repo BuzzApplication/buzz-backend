@@ -1,6 +1,6 @@
-package com.buzz.source.user;
+package com.buzz.api.source.user;
 
-import com.buzz.auth.UserAuth;
+import com.buzz.api.auth.UserAuth;
 import com.buzz.dao.BuzzDao;
 import com.buzz.dao.BuzzFavoriteDao;
 import com.buzz.dao.BuzzLikeDao;
@@ -45,7 +45,7 @@ import static com.buzz.exception.BadRequest.COMMENT_NOT_EXIST;
 import static com.buzz.exception.BadRequest.TEXT_CANNOT_BE_EMPTY;
 import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_EXIST;
 import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_MATCH;
-import static com.buzz.source.user.BuzzSource.validateUserWorksAtCompany;
+import static com.buzz.api.source.user.BuzzSource.validateUserWorksAtCompany;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;

@@ -1,10 +1,10 @@
-package com.buzz.source;
+package com.buzz.api.source;
 
 import com.buzz.dao.AuthenticationDao;
 import com.buzz.dao.CompanyEmailDao;
 import com.buzz.dao.SessionProvider;
 import com.buzz.dao.UserEmailDao;
-import com.buzz.email.EmailClient;
+import com.buzz.api.email.EmailClient;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Authentication;
 import com.buzz.model.CompanyEmail;
@@ -21,8 +21,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.Optional;
 
-import static com.buzz.auth.JWTUtil.createJWT;
-import static com.buzz.auth.JWTUtil.getSubject;
+import static com.buzz.api.auth.JWTUtil.createJWT;
+import static com.buzz.api.auth.JWTUtil.getSubject;
 import static com.buzz.exception.BadRequest.COMPANY_EMAIL_NOT_EXIST;
 import static com.buzz.exception.BadRequest.USER_EMAIL_NOT_EXIST;
 import static com.buzz.exception.GenericError.FOUND;
