@@ -165,6 +165,7 @@ public class CommentSource {
                                        @Context final SecurityContext securityContext) throws Exception {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
+            final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
             final CommentDao commentDao = new CommentDao(sessionProvider);
             final CommentLikeDao commentLikeDao = new CommentLikeDao(sessionProvider);
 
@@ -172,6 +173,11 @@ public class CommentSource {
             final Optional<Comment> comment = commentDao.getByIdOptional(commentLikeRequestBody.getCommentId());
             if (!comment.isPresent()) {
                 throw new BuzzException(COMMENT_NOT_EXIST);
+            }
+
+            final Optional<UserEmail> userEmail = userEmailDao.getByUserIdNotEveryone(user.getId());
+            if (!userEmail.isPresent()) {
+                throw new BuzzException(USER_EMAIL_NOT_EXIST);
             }
 
             // already liked/unliked
@@ -188,6 +194,8 @@ public class CommentSource {
                 commentLikeDao.dislikeComment(user.getId(), commentLikeRequestBody.getCommentId());
                 commentDao.decreaseLikesCount(comment.get().getId());
             }
+
+            notificationRedisHelper.addNotificationLikeComment(comment.get(), userEmail.get());
             sessionProvider.commitTransaction();
             sessionProvider.getSession().refresh(comment.get());
 
