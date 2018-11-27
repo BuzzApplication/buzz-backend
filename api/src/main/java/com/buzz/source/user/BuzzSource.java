@@ -10,6 +10,7 @@ import com.buzz.dao.persistent.SessionProvider;
 import com.buzz.dao.persistent.UserDao;
 import com.buzz.dao.persistent.UserEmailDao;
 import com.buzz.dao.persistent.UserPollDao;
+import com.buzz.dao.redis.NotificationRedisHelper;
 import com.buzz.exception.BuzzException;
 import com.buzz.model.Buzz;
 import com.buzz.model.BuzzFavorite;
@@ -25,6 +26,7 @@ import com.buzz.requestBody.BuzzRequestBody;
 import com.buzz.requestBody.PollRequestBody;
 import com.buzz.view.BuzzListWithCompanyView;
 import com.buzz.view.BuzzView;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.mysql.cj.core.util.StringUtils;
 
 import javax.ws.rs.Consumes;
@@ -63,6 +65,12 @@ public class BuzzSource {
 
     private static final int TRENDING_BUZZ_MAX_DAYS = 14;
     private static final int TRENDING_BUZZ_LIMIT = 10;
+
+    private final NotificationRedisHelper notificationRedisHelper;
+
+    public BuzzSource() {
+        notificationRedisHelper = new NotificationRedisHelper();
+    }
 
     @GET
     @Path("/buzz/search")
@@ -398,9 +406,10 @@ public class BuzzSource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public BuzzView likeBuzz(final BuzzLikeRequestBody buzzLikeRequestBody,
-                             @Context final SecurityContext securityContext) {
+                             @Context final SecurityContext securityContext) throws InvalidProtocolBufferException {
         try (final SessionProvider sessionProvider = new SessionProvider()) {
             final UserDao userDao = new UserDao(sessionProvider);
+            final UserEmailDao userEmailDao = new UserEmailDao(sessionProvider);
             final BuzzDao buzzDao = new BuzzDao(sessionProvider);
             final BuzzLikeDao buzzLikeDao = new BuzzLikeDao(sessionProvider);
             final BuzzFavoriteDao buzzFavoriteDao = new BuzzFavoriteDao(sessionProvider);
@@ -410,6 +419,11 @@ public class BuzzSource {
             final Optional<Buzz> buzz = buzzDao.getByIdOptional(buzzLikeRequestBody.getBuzzId());
             if (!buzz.isPresent()) {
                 throw new BuzzException(BUZZ_NOT_EXIST);
+            }
+
+            final Optional<UserEmail> userEmail = userEmailDao.getByUserIdNotEveryone(user.getId());
+            if (!userEmail.isPresent()) {
+                throw new BuzzException(USER_EMAIL_NOT_EXIST);
             }
 
             final Optional<BuzzFavorite> buzzFavorite = buzzFavoriteDao.getByUserIdAndBuzzId(user.getId(), buzzLikeRequestBody.getBuzzId());
@@ -438,6 +452,7 @@ public class BuzzSource {
                 buzzDao.decreaseLikesCount(buzz.get().getId());
             }
 
+            notificationRedisHelper.addNotificationLikeBuzz(buzz.get(), userEmail.get());
             sessionProvider.commitTransaction();
             sessionProvider.getSession().refresh(buzz.get());
 

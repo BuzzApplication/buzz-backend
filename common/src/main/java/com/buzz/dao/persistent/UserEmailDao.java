@@ -37,6 +37,16 @@ public class UserEmailDao extends BaseDao<UserEmail> {
         return userEmail;
     }
 
+    /**
+     * Get user's non-Everyone UserEmail
+     * @param userId
+     * @return
+     */
+    public Optional<UserEmail> getByUserIdNotEveryone(final int userId) {
+        final List<UserEmail> userEmails = getByUserId(userId);
+        return userEmails.stream().filter(ue -> ue.getCompany().getId() != 1).findFirst();
+    }
+
     public List<UserEmail> getByUserId(final int userId) {
         return getByFieldSorted("user.id", userId, "created", Sort.ASC);
     }

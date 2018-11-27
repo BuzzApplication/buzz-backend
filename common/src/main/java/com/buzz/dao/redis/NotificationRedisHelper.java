@@ -2,6 +2,7 @@ package com.buzz.dao.redis;
 
 import com.buzz.NotificationProto;
 import com.buzz.model.Buzz;
+import com.buzz.model.Comment;
 import com.buzz.model.UserEmail;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
@@ -10,6 +11,8 @@ import redis.clients.jedis.Jedis;
 import java.util.List;
 
 import static com.buzz.dao.redis.NotificationMessage.NOTIFICATION_COMMENT_MESSAGE;
+import static com.buzz.dao.redis.NotificationMessage.NOTIFICATION_LIKE_BUZZ_MESSAGE;
+import static com.buzz.dao.redis.NotificationMessage.NOTIFICATION_LIKE_COMMENT_MESSAGE;
 import static com.buzz.dao.redis.RedisKeyBuilder.getNotificationKey;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -47,7 +50,7 @@ public class NotificationRedisHelper {
     public void addNotificationComment(final Buzz buzz, final UserEmail userEmail) throws InvalidProtocolBufferException {
         requireNonNull(buzz);
         requireNonNull(userEmail);
-        final String message = buildNotificationMessage(buzz.getText(), userEmail.getCompany().getName());
+        final String message = buildNotificationCommentMessage(buzz.getText(), userEmail.getCompany().getName());
         final NotificationProto.Notification notification = NotificationProto.Notification.newBuilder()
             .setItemId(buzz.getId())
             .setType(NotificationProto.Type.BUZZ)
@@ -58,11 +61,51 @@ public class NotificationRedisHelper {
         jedis.lpush(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
     }
 
-    public String buildNotificationMessage(final String buzzText, final String companyName) {
+    public void addNotificationLikeBuzz(final Buzz buzz, final UserEmail userEmail) throws InvalidProtocolBufferException {
+        requireNonNull(buzz);
+        requireNonNull(userEmail);
+        final String message = buildNotificationLikeBuzzMessage(buzz.getText(), userEmail.getCompany().getName());
+        final NotificationProto.Notification notification = NotificationProto.Notification.newBuilder()
+                .setItemId(buzz.getId())
+                .setType(NotificationProto.Type.BUZZ)
+                .setAction(NotificationProto.Action.LIKE_ACTION)
+                .setMessage(message)
+                .setStatus(NotificationProto.Status.UNREAD)
+                .build();
+        jedis.lpush(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
+    }
+
+    public void addNotificationLikeComment(final Comment comment, final UserEmail userEmail) throws InvalidProtocolBufferException {
+        requireNonNull(comment);
+        requireNonNull(userEmail);
+        final String message = buildNotificationLikeCommentMessage(comment.getText(), userEmail.getCompany().getName());
+        final NotificationProto.Notification notification = NotificationProto.Notification.newBuilder()
+                .setItemId(comment.getId())
+                .setType(NotificationProto.Type.COMMENT)
+                .setAction(NotificationProto.Action.LIKE_ACTION)
+                .setMessage(message)
+                .setStatus(NotificationProto.Status.UNREAD)
+                .build();
+        jedis.lpush(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
+    }
+
+    public String buildNotificationCommentMessage(final String buzzText, final String companyName) {
+        return buildNotificationMessage(NOTIFICATION_COMMENT_MESSAGE, buzzText, companyName);
+    }
+
+    public String buildNotificationLikeBuzzMessage(final String buzzText, final String companyName) {
+        return buildNotificationMessage(NOTIFICATION_LIKE_BUZZ_MESSAGE, buzzText, companyName);
+    }
+
+    public String buildNotificationLikeCommentMessage(final String commentText, final String companyName) {
+        return buildNotificationMessage(NOTIFICATION_LIKE_COMMENT_MESSAGE, commentText, companyName);
+    }
+
+    private String buildNotificationMessage(final String messageFormat, final String buzzText, final String companyName) {
         requireNonNull(buzzText);
         requireNonNull(companyName);
         final String shortenedBuzz = getBuzzTextShortenedIfNeeded(buzzText);
-        return format(NOTIFICATION_COMMENT_MESSAGE, companyName, shortenedBuzz);
+        return format(messageFormat, companyName, shortenedBuzz);
     }
 
     public String getBuzzTextShortenedIfNeeded(final String buzzText) {
