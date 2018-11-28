@@ -26,6 +26,7 @@ public class NotificationRedisHelper {
 
     private final Jedis jedis;
     private static final int MAX_CHAR_LIMIT = 50;
+    private static final int MAX_SIZE = 150;
 
     public NotificationRedisHelper() {
         jedis = new Jedis();
@@ -58,7 +59,7 @@ public class NotificationRedisHelper {
             .setMessage(message)
             .setStatus(NotificationProto.Status.UNREAD)
             .build();
-        jedis.lpush(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
+        pushAndMaintainSize(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
     }
 
     public void addNotificationLikeBuzz(final Buzz buzz, final UserEmail userEmail) throws InvalidProtocolBufferException {
@@ -72,7 +73,7 @@ public class NotificationRedisHelper {
                 .setMessage(message)
                 .setStatus(NotificationProto.Status.UNREAD)
                 .build();
-        jedis.lpush(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
+        pushAndMaintainSize(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
     }
 
     public void addNotificationLikeComment(final Comment comment, final UserEmail userEmail) throws InvalidProtocolBufferException {
@@ -86,18 +87,25 @@ public class NotificationRedisHelper {
                 .setMessage(message)
                 .setStatus(NotificationProto.Status.UNREAD)
                 .build();
-        jedis.lpush(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
+        pushAndMaintainSize(getNotificationKey(userEmail.getUser().getId()), JsonFormat.printer().print(notification));
     }
 
-    public String buildNotificationCommentMessage(final String buzzText, final String companyName) {
+    private void pushAndMaintainSize(final String key, final String ...strings) {
+        jedis.lpush(key, strings);
+        while (jedis.llen(key) > MAX_SIZE) {
+            jedis.rpop(key);
+        }
+    }
+
+    private String buildNotificationCommentMessage(final String buzzText, final String companyName) {
         return buildNotificationMessage(NOTIFICATION_COMMENT_MESSAGE, buzzText, companyName);
     }
 
-    public String buildNotificationLikeBuzzMessage(final String buzzText, final String companyName) {
+    private String buildNotificationLikeBuzzMessage(final String buzzText, final String companyName) {
         return buildNotificationMessage(NOTIFICATION_LIKE_BUZZ_MESSAGE, buzzText, companyName);
     }
 
-    public String buildNotificationLikeCommentMessage(final String commentText, final String companyName) {
+    private String buildNotificationLikeCommentMessage(final String commentText, final String companyName) {
         return buildNotificationMessage(NOTIFICATION_LIKE_COMMENT_MESSAGE, commentText, companyName);
     }
 
@@ -108,7 +116,7 @@ public class NotificationRedisHelper {
         return format(messageFormat, companyName, shortenedBuzz);
     }
 
-    public String getBuzzTextShortenedIfNeeded(final String buzzText) {
+    private String getBuzzTextShortenedIfNeeded(final String buzzText) {
         requireNonNull(buzzText);
         if (buzzText.length() <= 50) {
             return buzzText;
