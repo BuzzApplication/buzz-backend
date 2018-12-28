@@ -176,6 +176,13 @@
       <version>3.6.1</version>
     </dependency>
 
+    <!--password encryption-->
+    <dependency>
+      <groupId>org.mindrot</groupId>
+      <artifactId>jbcrypt</artifactId>
+      <version>0.4</version>
+    </dependency>
+
   </dependencies>
   <build>
     <finalName>buzz</finalName>

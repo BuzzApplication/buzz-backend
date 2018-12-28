@@ -4,6 +4,7 @@ import com.buzz.exception.BuzzException;
 import com.buzz.model.Authentication;
 import com.buzz.requestBody.AuthenticationRequestBody;
 import org.hibernate.query.Query;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,6 +15,8 @@ import static com.buzz.exception.Unauthorized.UNAUTHORIZED;
 import static com.buzz.model.Authentication.Status.UNVERIFIED;
 import static com.buzz.model.Authentication.Status.VERIFIED;
 import static java.util.Objects.requireNonNull;
+import static org.mindrot.jbcrypt.BCrypt.checkpw;
+import static org.mindrot.jbcrypt.BCrypt.hashpw;
 
 /**
  * Created by toshikijahja on 6/7/17.
@@ -34,7 +37,7 @@ public class AuthenticationDao extends BaseDao<Authentication> {
         getSessionProvider().startTransaction();
         final Authentication authentication = new Authentication.Builder()
                 .email(authenticationRequestBody.getEmail())
-                .password(authenticationRequestBody.getPassword())
+                .password(hashpw(authenticationRequestBody.getPassword(), BCrypt.gensalt(12)))
                 .status(UNVERIFIED)
                 .verificationCode(generateVerificationToken())
                 .build();
@@ -57,7 +60,7 @@ public class AuthenticationDao extends BaseDao<Authentication> {
         }
 
         final Authentication authentication = authenticationList.get(0);
-        if (!Objects.equals(authentication.getPassword(), password)) {
+        if (!checkpw(password, authentication.getPassword())) {
             throw new BuzzException(UNAUTHORIZED);
         }
 

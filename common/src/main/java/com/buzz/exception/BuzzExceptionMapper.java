@@ -24,6 +24,8 @@ public class BuzzExceptionMapper implements ExceptionMapper<Exception> {
     }
 
     private ResponseError getResponseError(final Exception exception) {
+        exception.printStackTrace();
+
         if (exception instanceof BuzzException) {
             return ((BuzzException) exception).getResponseError();
         } else if (exception instanceof ClientErrorException) {
